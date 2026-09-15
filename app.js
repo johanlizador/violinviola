@@ -435,24 +435,40 @@ function setA4(value, broadcast = true) {
 function changeA4(delta) { setA4(a4 + delta); }
 
 /* --- Teclado --- */
+/* En un piano real las negras NO están centradas sobre la juntura de las
+   blancas: dentro de cada grupo las colas de las blancas miden lo mismo, lo que
+   empuja el DO# hacia la izquierda, el RE# hacia la derecha y deja el SOL#
+   centrado. Estos son los bordes izquierdos, medidos en anchos de tecla blanca
+   desde el DO de la octava (una negra mide 0.6 de una blanca). */
+const BLACK_OFFSETS = { 1: 0.60, 3: 1.80, 6: 3.55, 8: 4.70, 10: 5.85 };
+
 function buildKeyboard() {
   const piano = document.getElementById('piano');
   if (!piano) return;
   piano.innerHTML = '';
+
+  const felt = document.createElement('div');
+  felt.className = 'piano-felt';
+  const bed = document.createElement('div');
+  bed.className = 'keybed';
+
   const last = kbStart + KB_OCTAVES * 12;           // incluye el DO superior
   const whites = [];
   for (let m = kbStart; m <= last; m++) if (!BLACK_PCS.includes(m % 12)) whites.push(m);
-  piano.style.setProperty('--white-count', whites.length);
+  bed.style.setProperty('--white-count', whites.length);
 
-  whites.forEach(m => piano.appendChild(makeKey(m, 'white')));
+  whites.forEach(m => bed.appendChild(makeKey(m, 'white')));
 
   for (let m = kbStart; m <= last; m++) {
     if (!BLACK_PCS.includes(m % 12)) continue;
     const key = makeKey(m, 'black');
-    const whitesBelow = whites.filter(w => w < m).length;
-    key.style.left = 'calc(6px + (100% - 12px) * ' + (whitesBelow / whites.length) + ')';
-    piano.appendChild(key);
+    const units = Math.floor((m - kbStart) / 12) * 7 + BLACK_OFFSETS[m % 12];
+    key.style.left = 'calc(100% / ' + whites.length + ' * ' + units + ')';
+    bed.appendChild(key);
   }
+
+  piano.appendChild(felt);
+  piano.appendChild(bed);
 
   const rangeLabel = document.getElementById('kb-range');
   if (rangeLabel) rangeLabel.innerText = noteLabel(kbStart) + ' – ' + noteLabel(last);
@@ -465,10 +481,18 @@ function makeKey(midi, type) {
   key.dataset.midi = midi;
   key.title = noteLabel(midi) + ' · ' + midiToFreq(midi).toFixed(1) + ' Hz';
   key.onclick = () => toggleDrone(midi);
+
+  const face = document.createElement('span');   // superficie superior de la tecla
+  face.className = 'key-face';
+  const front = document.createElement('span');  // canto frontal, el que mira al intérprete
+  front.className = 'key-front';
   const label = document.createElement('span');
   label.className = 'key-label';
   // Sólo etiquetamos las blancas; los DO llevan además el número de octava
   label.innerText = type === 'white' ? (midi % 12 === 0 ? noteLabel(midi) : noteName(midi)) : '';
+
+  key.appendChild(face);
+  key.appendChild(front);
   key.appendChild(label);
   return key;
 }
