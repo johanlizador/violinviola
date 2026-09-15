@@ -247,65 +247,131 @@ footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-a
   overflow-x: auto;
   overflow-y: hidden;
   margin-top: 0.7rem;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   -webkit-overflow-scrolling: touch;
 }
+
+/* El mueble: madera oscura, con el canto superior iluminado */
 .piano {
   position: relative;
-  display: flex;
-  height: 150px;
-  min-width: 620px;
-  background: #090d12;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 6px 6px 8px 6px;
+  min-width: 660px;
+  padding: 10px 12px 14px 12px;
+  background: linear-gradient(180deg, #2b2119 0%, #1a130d 40%, #0c0906 100%);
+  border: 1px solid #000;
+  border-top: 1px solid #4a3a28;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 170, 0.18),
+              inset 0 -6px 14px rgba(0, 0, 0, 0.7),
+              0 14px 30px rgba(0, 0, 0, 0.55);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
 }
-@media (max-width: 700px) { .piano { height: 130px; } }
+
+/* Paño rojo que asoma detrás de las teclas */
+.piano-felt {
+  height: 8px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, #7d1b2a 0%, #4e0f1a 100%);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 140, 150, 0.25);
+}
+
+.keybed { position: relative; display: flex; height: 168px; }
+@media (max-width: 700px) { .keybed { height: 136px; } }
 
 .key {
   padding: 0;
+  border: none;
+  background: none;
   cursor: pointer;
   font-family: inherit;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  transition: background 0.1s, box-shadow 0.1s;
+  position: relative;
+  transform-origin: top center;
+  transition: transform 0.06s ease-out, filter 0.1s;
 }
-.key-label { font-size: 0.62rem; font-weight: 700; pointer-events: none; padding-bottom: 7px; }
+.key-face, .key-front { position: absolute; left: 0; right: 0; pointer-events: none; }
 
+/* ---- Teclas blancas (marfil) ---- */
 .key.white {
   flex: 1 1 0;
   min-width: 0;
-  background: linear-gradient(#fafafa, #e4e4e4);
-  border: 1px solid #b9b9b9;
-  border-radius: 0 0 5px 5px;
-  color: #6a6a6a;
   margin-right: -1px;
   z-index: 1;
 }
-.key.white:hover { background: linear-gradient(#fff, #f3e0bd); }
-.key.white.playing { background: linear-gradient(var(--accent-gold-hover), var(--accent-gold)); color: #000; box-shadow: inset 0 -3px 10px rgba(0,0,0,0.25); }
-.key.white.is-c .key-label { color: #2b2b2b; }
+.key.white .key-face {
+  top: 0; bottom: 11px;
+  background: linear-gradient(180deg, #ebe7df 0%, #f7f4ee 12%, #fdfcfa 70%, #fffffe 100%);
+  border: 1px solid #b6b0a4;
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  /* sombra del vecino a la izquierda + brillo del canto derecho */
+  box-shadow: inset 5px 0 7px -6px rgba(0, 0, 0, 0.55),
+              inset -2px 0 2px -2px rgba(255, 255, 255, 0.95),
+              inset 0 -10px 12px -10px rgba(0, 0, 0, 0.3);
+}
+/* El canto frontal: es lo que da la sensación de grosor */
+.key.white .key-front {
+  bottom: 0; height: 12px;
+  background: linear-gradient(180deg, #ded8cc 0%, #cdc6b8 55%, #b3ab9c 100%);
+  border: 1px solid #a49c8d;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.key.white:hover .key-face { background: linear-gradient(180deg, #f3ece0 0%, #fffdf8 60%, #fffffe 100%); }
+.key.white:active, .key.white.playing { transform: translateY(2px) scaleY(0.995); }
+.key.white.playing .key-face {
+  background: linear-gradient(180deg, #d99a2c 0%, #f0bc5c 35%, #f7d089 100%);
+  border-color: #a8761f;
+  box-shadow: inset 0 6px 10px -6px rgba(0, 0, 0, 0.55), inset 0 -8px 12px -8px rgba(0, 0, 0, 0.35);
+}
+.key.white.playing .key-front { background: linear-gradient(180deg, #c78e2a 0%, #9c6d1c 100%); border-color: #8a5f18; }
 
+/* ---- Teclas negras (ébano) ---- */
 .key.black {
   position: absolute;
-  top: 6px;
-  width: calc((100% - 12px) / var(--white-count) * 0.62);
-  height: 62%;
-  transform: translateX(-50%);
-  background: linear-gradient(#3a3a3a, #101010);
-  border: 1px solid #000;
-  border-radius: 0 0 4px 4px;
-  color: #cfcfcf;
+  top: 0;
+  width: calc(100% / var(--white-count) * 0.6);
+  height: 63%;
   z-index: 3;
-  box-shadow: 0 3px 5px rgba(0,0,0,0.6);
 }
-.key.black:hover { background: linear-gradient(#5a4a28, #221a0b); }
-.key.black.playing { background: linear-gradient(var(--accent-gold), #a8761f); color: #000; border-color: var(--accent-gold); }
-.key.black .key-label { font-size: 0.55rem; padding-bottom: 5px; }
+.key.black .key-face {
+  top: 0; bottom: 7px;
+  background: linear-gradient(180deg, #4d4b4e 0%, #2a282b 10%, #171518 45%, #0a090b 100%);
+  border-radius: 0 0 3px 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+              inset 2px 0 3px -2px rgba(255, 255, 255, 0.14),
+              inset -3px 0 4px -3px rgba(0, 0, 0, 0.9);
+}
+/* Canto frontal de la negra, ligeramente más claro */
+.key.black .key-front {
+  bottom: 0; height: 8px;
+  background: linear-gradient(180deg, #3a383c 0%, #1b191c 100%);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 5px 7px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.key.black:hover .key-face { background: linear-gradient(180deg, #5c5039 0%, #33291a 45%, #14100a 100%); }
+.key.black:active, .key.black.playing { transform: translateY(2px); }
+.key.black.playing .key-face {
+  background: linear-gradient(180deg, #f0bc5c 0%, #d99a2c 40%, #a8761f 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.key.black.playing .key-front { background: linear-gradient(180deg, #a8761f 0%, #6d4c12 100%); }
+
+/* ---- Etiquetas: impresas sobre el marfil, discretas ---- */
+.key-label {
+  position: absolute;
+  left: 0; right: 0; bottom: 16px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #9b9284;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+.key.white.is-c .key-label { color: #6f675b; }
+.key.white.playing .key-label { color: rgba(0, 0, 0, 0.55); text-shadow: none; }
+@media (max-width: 700px) { .key-label { font-size: 0.55rem; bottom: 15px; } }
 
 /* -- Pie del panel -- */
 .tuner-footer {
