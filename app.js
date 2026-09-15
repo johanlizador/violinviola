@@ -9,7 +9,7 @@ const translations = {
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
     st_waiting: "Esperando conexión...", st_generating: "Generando sala...", st_wait_student: "Esperando al alumno...", st_ready: "Listo para conectar...", st_connecting: "Conectando con tu profesor...", st_live: "Conectado en vivo", st_student_left: "El alumno se desconectó", st_teacher_left: "Tu profesor se desconectó",
-    lock_badge: "🔒 Lo controla tu profesor", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
+    lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
@@ -17,7 +17,7 @@ const translations = {
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
     student_hint: "Are you a student? You need the link your teacher sends you.",
     st_waiting: "Waiting for connection...", st_generating: "Creating room...", st_wait_student: "Waiting for the student...", st_ready: "Ready to connect...", st_connecting: "Connecting to your teacher...", st_live: "Live", st_student_left: "The student disconnected", st_teacher_left: "Your teacher disconnected",
-    lock_badge: "🔒 Your teacher controls this", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
+    lock_badge: "🔒 Your teacher controls this", routing_label: "Where do the metronome and drones play?", routing_local: "On my machine", routing_remote: "On the student's machine", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
 
@@ -154,6 +154,7 @@ function setupConn(conn) {
     if(currentRole === 'teacher') {
       sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
       sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
+      pushToolStateToPeer();
     }
     if(localStream && conn.peer) makeCall(conn.peer);
   });
@@ -394,6 +395,52 @@ function lockStudentInterface(lock) {
 let audioCtx = null; let isPlaying = false; let bpm = 100; let beatsPerBar = 4; let currentBeat = 0; let nextNoteTime = 0.0; let timerID = null;
 function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 
+/* Metrónomo y drones pasan por un bus propio, así el profesor puede silenciarlos
+   en su equipo sin dejar de mandárselos al alumno (y sin meter el clic por su
+   micrófono, que era la causa del eco). */
+let toolsBus = null;
+let localAudioOn = true;
+let remoteAudioOn = true;
+
+function getToolsBus() {
+  const ctx = getAudioContext();
+  if (!toolsBus) {
+    toolsBus = ctx.createGain();
+    toolsBus.gain.value = localAudioOn ? 1 : 0;
+    toolsBus.connect(ctx.destination);
+  }
+  return toolsBus;
+}
+
+function setLocalAudio(on) {
+  localAudioOn = on;
+  const bus = getToolsBus();
+  const t = audioCtx.currentTime;
+  bus.gain.cancelScheduledValues(t);
+  bus.gain.setValueAtTime(bus.gain.value, t);
+  bus.gain.linearRampToValueAtTime(on ? 1 : 0, t + 0.04);
+}
+
+/* El alumno no oye nada porque no le llegan los mensajes, no porque le baje el volumen */
+function sendToolMessage(msg) {
+  if (currentRole === 'teacher' && !remoteAudioOn) return;
+  sendPeerMessage(msg);
+}
+
+function pushToolStateToPeer() {
+  if (currentRole !== 'teacher' || !remoteAudioOn) return;
+  if (isPlaying) sendToolMessage({ type: 'METRO_START', bpm, beatsPerBar });
+  if (currentDroneMidi !== null) sendPeerMessage({ type: 'DRONE_START', midi: currentDroneMidi });
+}
+
+function setRemoteAudio(on) {
+  remoteAudioOn = on;
+  if (currentRole !== 'teacher') return;
+  // Al mover el interruptor hay que poner al alumno al día, no esperar al próximo clic
+  if (on) pushToolStateToPeer();
+  else { sendPeerMessage({ type: 'METRO_STOP' }); sendPeerMessage({ type: 'DRONE_STOP' }); }
+}
+
 const beatQueue = [];
 
 function buildBeatDots() {
@@ -425,7 +472,7 @@ function beatLoop() {
 function scheduleNote(beatNumber, time) {
   beatQueue.push({ beat: beatNumber, time });
   const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.connect(gain); gain.connect(getToolsBus());
   osc.frequency.value = (beatNumber === 0) ? 1000 : 650;
   gain.gain.setValueAtTime(beatNumber === 0 ? 0.8 : 0.4, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
@@ -445,19 +492,19 @@ function toggleMetronome(broadcast = true) {
     isPlaying = false; clearTimeout(timerID); beatQueue.length = 0; markBeat(-1);
     document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro; 
     document.getElementById('btn-play-metro').classList.remove('active');
-    if (broadcast) sendPeerMessage({ type: 'METRO_STOP' });
+    if (broadcast) sendToolMessage({ type: 'METRO_STOP' });
   } else {
     isPlaying = true; currentBeat = 0; nextNoteTime = audioCtx.currentTime; scheduler();
     document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro; 
     document.getElementById('btn-play-metro').classList.add('active');
-    if (broadcast) sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
+    if (broadcast) sendToolMessage({ type: 'METRO_START', bpm, beatsPerBar });
   }
 }
 
 function onTempoChange(val, broadcast = true) {
   bpm = parseInt(val); document.getElementById('bpm-display').innerText = bpm; document.getElementById('tempo-slider').value = bpm;
   document.getElementById('mon-bpm').innerText = bpm;
-  if (broadcast) sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
+  if (broadcast) sendToolMessage({ type: 'TEMPO_CHANGE', bpm });
 }
 
 function setTimeSignature(sig, broadcast = true) {
@@ -466,7 +513,7 @@ function setTimeSignature(sig, broadcast = true) {
   buildBeatDots();
   document.querySelectorAll('.ts-btn').forEach(b => b.classList.remove('active')); 
   document.getElementById('ts-' + sig).classList.add('active');
-  if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
+  if (broadcast) sendToolMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
 }
 
 let droneOsc = null; let droneGain = null; let currentDroneMidi = null;
@@ -623,13 +670,13 @@ function toggleDrone(midi, broadcast = true) {
   droneOsc.frequency.setValueAtTime(midiToFreq(midi), audioCtx.currentTime);
   droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
   droneGain.gain.exponentialRampToValueAtTime(0.28, audioCtx.currentTime + 0.1);
-  droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination); droneOsc.start();
+  droneOsc.connect(droneGain); droneGain.connect(getToolsBus()); droneOsc.start();
 
   currentDroneMidi = midi;
   ensureKeyVisible(midi);
   refreshDroneHighlights();
   updateDroneReadout();
-  if (broadcast) sendPeerMessage({ type: 'DRONE_START', midi });
+  if (broadcast) sendToolMessage({ type: 'DRONE_START', midi });
 }
 
 function stopDrone(broadcast = true) {
@@ -648,7 +695,7 @@ function stopDrone(broadcast = true) {
 
   refreshDroneHighlights();
   updateDroneReadout();
-  if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
+  if (broadcast) sendToolMessage({ type: 'DRONE_STOP' });
 }
 
 /* 6. MANEJO DE MENSAJES RECIBIDOS */
