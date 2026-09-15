@@ -47,10 +47,32 @@
       </div>
 
       <!-- Panel de ingreso para el Alumno -->
-      <div id="student-join-panel">
-        <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem;" data-i18n="join_title">¡Bienvenido a la clase!</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic abajo para activar el sonido y conectar.</p>
-        <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
+      <!-- Sala de espera del alumno: nombre, prueba de cámara y una sola puerta -->
+      <div id="student-lobby">
+        <h3 data-i18n="join_title">Bienvenido a la clase</h3>
+        <p class="lobby-req" data-i18n="join_headphones">🎧 Ponte los auriculares antes de entrar. Sin ellos, el metrónomo se cuela por tu micrófono y se oye eco.</p>
+
+        <label class="lobby-label" for="student-name" data-i18n="join_name_label">¿Cómo te llamas?</label>
+        <input type="text" id="student-name" class="lobby-input" autocomplete="name" maxlength="40" />
+
+        <div class="lobby-preview">
+          <video id="lobby-video" autoplay playsinline muted></video>
+          <div class="lobby-preview-empty" id="lobby-preview-empty">
+            <p data-i18n="join_preview_hint">Aquí te verás a ti mismo</p>
+            <button class="tool-btn" onclick="prepareMedia()" data-i18n="join_test">Probar cámara y micrófono</button>
+          </div>
+          <div class="mic-meter" id="mic-meter"><span id="mic-level"></span></div>
+        </div>
+
+        <p class="lobby-tip" data-i18n="join_framing">Coloca la cámara de modo que se vean el arco y la mano izquierda, no solo la cara.</p>
+
+        <button class="btn-cta lobby-enter" onclick="studentEnterClass()" data-i18n="join_btn">Entrar a la clase</button>
+        <p class="lobby-waiting" id="lobby-waiting" hidden></p>
+
+        <div class="perm-help" id="permission-help" hidden>
+          <p><strong data-i18n="perm_title">El navegador bloqueó la cámara o el micrófono.</strong></p>
+          <p id="perm-steps"></p>
+        </div>
       </div>
 
       <!-- Herramientas del Profesor -->
@@ -110,7 +132,7 @@
               <div class="video-box remote-box">
                  <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando a que la otra persona encienda su cámara...</div>
                  <video id="remote-video" autoplay playsinline></video>
-                 <div class="video-label" data-i18n="vid_remote">Remoto</div>
+                 <div class="video-label" id="remote-label" data-i18n="vid_remote">Remoto</div>
               </div>
               
               <!-- Video Local (El Pequeño Arrastrable) -->
