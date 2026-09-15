@@ -4,7 +4,16 @@ let isStudentAllowed = false;
 
 const translations = {
   es: { 
-    nav_teachers: "Profesores", nav_studio: "Aula Remota", nav_request: "Solicitar clase", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
+    nav_teachers: "Profesores", nav_studio: "Aula Remota", nav_request: "Solicitar clase", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", share_hint: "Enlace para el alumno:", join_title: "Bienvenido a la clase", join_btn: "Entrar a la clase",
+    join_headphones: "🎧 Ponte los auriculares antes de entrar. Sin ellos, el metrónomo se cuela por tu micrófono y se oye eco.",
+    join_name_label: "¿Cómo te llamas?", join_need_name: "Escribe tu nombre para que tu profesor sepa quién entra.",
+    join_preview_hint: "Aquí te verás a ti mismo", join_test: "Probar cámara y micrófono",
+    join_framing: "Coloca la cámara de modo que se vean el arco y la mano izquierda, no solo la cara.",
+    perm_title: "El navegador bloqueó la cámara o el micrófono.",
+    perm_desktop: "Pulsa el candado (o el icono de cámara) a la izquierda de la dirección web, pon Cámara y Micrófono en «Permitir», y recarga la página.",
+    perm_ios: "Abre Ajustes › Safari › Cámara y Micrófono y elige «Preguntar» o «Permitir». Después vuelve aquí y recarga la página.",
+    perm_none: "No se detectó ninguna cámara o micrófono conectado.",
+    perm_busy: "Otra aplicación está usando la cámara. Cierra Zoom, Meet o cualquier otra videollamada y vuelve a intentarlo.", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
     btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
@@ -60,7 +69,7 @@ function getJoinId() {
 function enterStudio() {
   const studio = document.getElementById('studio');
   if (studio) studio.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (currentRole === 'student' && !hasJoined) studentJoinClass();
+  if (currentRole === 'student' && !hasJoined) studentEnterClass();
 }
 
 function initSystem() {
@@ -77,7 +86,7 @@ function initSystem() {
     currentRole = 'student';
     document.body.classList.add('student-view');
     document.getElementById('teacher-login-panel').style.display = 'none';
-    document.getElementById('student-join-panel').style.display = 'block';
+    document.getElementById('student-lobby').style.display = 'block';
     document.getElementById('main-controls').style.display = 'grid'; 
     lockStudentInterface(true); // Bloquea botones de metrónomo/drone
     initPeerClient();
@@ -96,6 +105,7 @@ function authenticateTeacher() {
     lockStudentInterface(false); 
     const quien = document.getElementById('room-choice');
     initPeerTeacher(ROOMS[quien ? quien.value : 'johann']);
+    keepScreenAwake();
   } else {
     document.getElementById('login-error').style.display = 'block';
   }
@@ -203,11 +213,16 @@ function retryJoin() {
     hasJoined = false;
     joinAttempts = 0;
     setStatus('err_room_closed', 'error');
-    document.getElementById('student-join-panel').style.display = 'block';
+    const lobby = document.getElementById('student-lobby');
+    if (lobby) lobby.style.display = 'block';
+    const espera = document.getElementById('lobby-waiting');
+    if (espera) { espera.hidden = false; espera.innerText = translations[currentLang].err_room_closed; }
     return;
   }
   joinAttempts++;
   setStatus('st_retrying', 'warning');
+  const espera = document.getElementById('lobby-waiting');
+  if (espera) { espera.hidden = false; espera.innerText = translations[currentLang].st_retrying; }
   setTimeout(() => {
     if (!peer || peer.destroyed) return;
     const conn = peer.connect(joinIdFromUrl);
@@ -258,25 +273,134 @@ function initPeerClient() {
   setupCallListener();
 }
 
-function studentJoinClass() {
-  if (hasJoined) return;
-  hasJoined = true;
-  const ctx = getAudioContext();
-  ctx.resume().then(() => {
-    const unlockOsc = ctx.createOscillator(); const unlockGain = ctx.createGain();
-    unlockOsc.connect(unlockGain); unlockGain.connect(ctx.destination); unlockGain.gain.value = 0; 
-    unlockOsc.start(ctx.currentTime); unlockOsc.stop(ctx.currentTime + 0.001);
+/* ==========================================================================
+   ENTRADA DEL ALUMNO
+   Una sola puerta: nombre, prueba opcional de cámara, y un botón que activa
+   audio, pide permisos, conecta y arranca el video en un mismo gesto.
+   ========================================================================== */
+let studentName = '';
+let micMeterRAF = null;
 
-    document.getElementById('student-join-panel').style.display = 'none';
-    setStatus('st_connecting', 'warning');
-    const doConnect = () => {
-      const conn = peer.connect(joinIdFromUrl);
-      activeConnection = conn; setupConn(conn);
-    };
-    // Si el alumno pulsa antes de que PeerJS termine de registrarse, esperamos
-    if (peer && peer.open) doConnect(); else peer.on('open', doConnect);
-  });
+/* Prueba de cámara y micrófono antes de que el profesor lo vea */
+async function prepareMedia() {
+  try {
+    if (!localStream) {
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      });
+    }
+    const prev = document.getElementById('lobby-video');
+    if (prev) prev.srcObject = localStream;
+    const empty = document.getElementById('lobby-preview-empty');
+    if (empty) empty.style.display = 'none';
+    startMicMeter();
+    document.getElementById('permission-help').hidden = true;
+    return true;
+  } catch (err) {
+    showPermissionHelp(err);
+    return false;
+  }
 }
+
+/* Una barra que se mueve dice más que "micrófono activo" */
+function startMicMeter() {
+  if (micMeterRAF || !localStream) return;
+  const ctx = getAudioContext();
+  const source = ctx.createMediaStreamSource(localStream);
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 512;
+  source.connect(analyser);           // no se conecta a destination: no se oye a sí mismo
+  const datos = new Uint8Array(analyser.frequencyBinCount);
+  const barra = document.getElementById('mic-level');
+  const meter = document.getElementById('mic-meter');
+  if (meter) meter.style.display = 'block';
+
+  const pintar = () => {
+    analyser.getByteTimeDomainData(datos);
+    let pico = 0;
+    for (let i = 0; i < datos.length; i++) pico = Math.max(pico, Math.abs(datos[i] - 128));
+    if (barra) barra.style.width = Math.min(100, (pico / 70) * 100) + '%';
+    micMeterRAF = requestAnimationFrame(pintar);
+  };
+  pintar();
+}
+
+function stopMicMeter() {
+  if (micMeterRAF) cancelAnimationFrame(micMeterRAF);
+  micMeterRAF = null;
+}
+
+/* Un permiso denegado se recuerda: hay que explicar cómo revertirlo */
+function showPermissionHelp(err) {
+  const caja = document.getElementById('permission-help');
+  const pasos = document.getElementById('perm-steps');
+  if (!caja || !pasos) return;
+  const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const denegado = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+  const sinCamara = err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError');
+
+  let clave;
+  if (sinCamara) clave = 'perm_none';
+  else if (!denegado) clave = 'perm_busy';
+  else clave = iOS ? 'perm_ios' : 'perm_desktop';
+
+  pasos.innerText = translations[currentLang][clave];
+  caja.hidden = false;
+  console.error('[aula] permisos:', err && err.name, err);
+}
+
+async function studentEnterClass() {
+  if (hasJoined) return;
+
+  const campo = document.getElementById('student-name');
+  studentName = campo ? campo.value.trim() : '';
+  if (!studentName) {
+    document.getElementById('lobby-waiting').hidden = false;
+    document.getElementById('lobby-waiting').innerText = translations[currentLang].join_need_name;
+    if (campo) campo.focus();
+    return;
+  }
+
+  // El mismo clic desbloquea el audio del navegador
+  const ctx = getAudioContext();
+  await ctx.resume();
+
+  if (!await prepareMedia()) return;   // sin permisos no se entra: ya se explicó por qué
+
+  hasJoined = true;
+  stopMicMeter();
+  document.getElementById('student-lobby').style.display = 'none';
+  keepScreenAwake();
+  setStatus('st_connecting', 'warning');
+
+  // Video listo desde el primer segundo, sin segundo botón
+  document.getElementById('local-video').srcObject = localStream;
+  setLocalPlaceholder(false);
+  document.getElementById('btn-start-video').style.display = 'none';
+  document.getElementById('video-conference-container').style.display = 'flex';
+
+  const doConnect = () => {
+    const conn = peer.connect(joinIdFromUrl);
+    activeConnection = conn;
+    setupConn(conn);
+  };
+  if (peer && peer.open) doConnect(); else peer.on('open', doConnect);
+}
+
+/* La pantalla no debe apagarse con el instrumento en las manos */
+let wakeLock = null;
+async function keepScreenAwake() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (e) { /* no es crítico */ }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !wakeLock && hasJoined) keepScreenAwake();
+});
 
 function setupConn(conn) {
   watchIce(conn);
@@ -287,6 +411,7 @@ function setupConn(conn) {
       sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
       pushToolStateToPeer();
     }
+    if (currentRole === 'student' && studentName) sendPeerMessage({ type: 'HELLO', name: studentName });
     if(localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
@@ -889,6 +1014,10 @@ function handleData(data) {
   else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
   else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
   else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
+  else if (data.type === 'HELLO') {
+    const etiqueta = document.getElementById('remote-label');
+    if (etiqueta) { etiqueta.innerText = data.name; etiqueta.removeAttribute('data-i18n'); }
+  }
   else if (data.type === 'TUNING_CHANGE') { setA4(data.a4, false); }
   else if (data.type === 'DRONE_START') { toggleDrone(data.midi, false); }
   else if (data.type === 'DRONE_STOP') { stopDrone(false); }
