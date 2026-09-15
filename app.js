@@ -242,7 +242,6 @@ function initPeerClient() {
   setupCallListener();
 }
 
-/* MÉTODO AUXILIAR PARA PREVENIR FALLOS DE HARDWARE AL INICIAR LA CÁMARA/MICRÓFONO */
 async function getReliableMediaStream(videoEnabled) {
   try {
     return await navigator.mediaDevices.getUserMedia({
@@ -253,7 +252,7 @@ async function getReliableMediaStream(videoEnabled) {
     console.warn('[aula] Las restricciones para música fallaron, forzando audio estándar:', err);
     return await navigator.mediaDevices.getUserMedia({
       video: videoEnabled,
-      audio: true // Fallback a un micrófono estándar si el navegador bloquea las restricciones crudas
+      audio: true 
     });
   }
 }
@@ -326,6 +325,30 @@ function showPermissionHelp(err) {
   caja.hidden = false;
 }
 
+/* FIX CRÍTICO: Desbloquear los motores de audio al clickear */
+function forceUnlockAudio() {
+  try {
+      const ctx = getAudioContext();
+      ctx.resume();
+      // Reproducir 10ms de silencio absoluto para engañar a iOS/Safari
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(0);
+      osc.stop(ctx.currentTime + 0.01);
+
+      const remoteVid = document.getElementById('remote-video');
+      if (remoteVid) {
+          remoteVid.muted = false;
+          remoteVid.play().catch(()=>{});
+      }
+  } catch (e) {
+      console.warn("[aula] forceUnlockAudio:", e);
+  }
+}
+
 async function studentEnterClass() {
   if (hasJoined) return;
 
@@ -338,8 +361,8 @@ async function studentEnterClass() {
     return;
   }
 
-  const ctx = getAudioContext();
-  await ctx.resume();
+  // Desbloqueo estricto del audio
+  forceUnlockAudio();
 
   if (!await prepareMedia()) return;
 
@@ -377,29 +400,44 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !wakeLock && hasJoined) keepScreenAwake();
 });
 
+/* FIX CRÍTICO: Prevenir doble llamada y cruce de conexiones */
 function setupConn(conn) {
   watchIce(conn);
   conn.on('open', () => { 
     setStatus('st_live', 'connected'); 
+    
     if(currentRole === 'teacher') {
-      // Retraso añadido para evitar colisión si el alumno no ha cargado los listener de datos aún
       setTimeout(() => {
           sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
           sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
           pushToolStateToPeer();
-      }, 500); 
+      }, 300); 
     }
-    if (currentRole === 'student' && studentName) sendPeerMessage({ type: 'HELLO', name: studentName });
+    
+    if (currentRole === 'student' && studentName) {
+        sendPeerMessage({ type: 'HELLO', name: studentName });
+        // SOLAMENTE EL ALUMNO INICIA LA LLAMADA DE VIDEO
+        // Esto evita que ambos navegadores choquen y anulen el audio
+        if (localStream && conn.peer && !currentCall) {
+            makeCall(conn.peer);
+        }
+    }
+    
     if (localStream && !isCamOn) sendPeerMessage({ type: 'CAM_STATE', on: false });
-    if (localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
   conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
 }
 
+/* FIX CRÍTICO: Asegurar que el mensaje espere a que el canal esté abierto */
 function sendPeerMessage(msg) { 
-    if (activeConnection) {
+    if (!activeConnection) return;
+    if (activeConnection.open) {
         activeConnection.send(msg); 
+    } else {
+        activeConnection.on('open', () => {
+            activeConnection.send(msg);
+        });
     }
 }
 
@@ -443,7 +481,11 @@ async function startVideo() {
     
     document.getElementById('video-conference-container').style.display = 'flex';
 
-    if (activeConnection && activeConnection.peer) makeCall(activeConnection.peer);
+    // Evitar iniciar una llamada si ya hay una en curso o pendiente
+    if (activeConnection && activeConnection.peer && !currentCall) {
+       makeCall(activeConnection.peer);
+    }
+    
     if (pendingCall) {
       currentCall = pendingCall;          
       currentCall.answer(localStream);
@@ -1037,9 +1079,7 @@ function stopDrone(broadcast = true) {
   if (broadcast) sendToolMessage({ type: 'DRONE_STOP' });
 }
 
-/* MANEJO DE MENSAJES CON REACTIVACIÓN DE AUDIO Y VERIFICACIÓN */
 function handleData(data) {
-  // Aseguramos que el navegador del alumno no ponga el metrónomo a "dormir"
   const ctx = getAudioContext();
   if (ctx && ctx.state === 'suspended') {
       ctx.resume().catch(e => console.warn('No se pudo reanudar AudioContext:', e));
