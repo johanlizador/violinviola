@@ -519,3 +519,17 @@ footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-a
   padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
 }
 body.fs-lock { overflow: hidden; }
+
+
+/* Línea de diagnóstico de red: sólo aparece cuando hay algo que contar */
+.diagnostic {
+  width: 100%;
+  order: 3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+}
