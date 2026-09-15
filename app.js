@@ -6,17 +6,26 @@ const translations = {
   es: { 
     nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
     btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
-    vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar"
+    vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
+    calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
     btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View",
-    vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy"
+    vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
+    calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
 
 let currentLang = 'es';
-function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); updateMediaButtonsText(); }
+function toggleLanguage() {
+  currentLang = currentLang === 'es' ? 'en' : 'es';
+  applyLanguage(currentLang);
+  updateMediaButtonsText();
+  buildKeyboard();          // DO RE MI  <->  C D E
+  refreshStringLabels();
+  updateDroneReadout();
+}
 function applyLanguage(lang) { 
   document.documentElement.lang = lang; 
   document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES'; 
@@ -30,6 +39,10 @@ let peer = null; let activeConnection = null; let currentRole = 'visitor'; let j
 
 function initSystem() {
   applyLanguage(currentLang);
+  setA4(a4, false);
+  buildKeyboard();
+  refreshStringLabels();
+  updateDroneReadout();
   const urlParams = new URLSearchParams(window.location.search);
   joinIdFromUrl = urlParams.get('join');
   
@@ -105,7 +118,10 @@ function studentJoinClass() {
 function setupConn(conn) {
   conn.on('open', () => { 
     setStatus("Conectado en Vivo", "connected"); 
-    if(currentRole === 'teacher') sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
+    if(currentRole === 'teacher') {
+      sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
+      sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
+    }
     if(localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
@@ -388,26 +404,145 @@ function setTimeSignature(sig, broadcast = true) {
   if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
 }
 
-let droneOsc = null; let droneGain = null; let currentDroneNote = null;
-function toggleDrone(freq, noteName, broadcast = true) {
+let droneOsc = null; let droneGain = null; let currentDroneMidi = null;
+let a4 = 440;                 // LA de referencia en Hz
+let kbStart = 48;             // nota más grave del teclado (48 = DO3)
+const KB_OCTAVES = 3;
+const BLACK_PCS = [1, 3, 6, 8, 10];
+const NOTE_NAMES = {
+  es: ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'],
+  en: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+};
+
+/* Todo se calcula desde el LA de referencia: si cambia a 442, cambia todo. */
+function midiToFreq(midi) { return a4 * Math.pow(2, (midi - 69) / 12); }
+function noteName(midi) { return NOTE_NAMES[currentLang][((midi % 12) + 12) % 12]; }
+function octaveOf(midi) { return Math.floor(midi / 12) - 1; }
+function noteLabel(midi) { return noteName(midi) + octaveOf(midi); }
+
+/* --- Calibración del LA --- */
+function setA4(value, broadcast = true) {
+  a4 = Math.min(466, Math.max(415, Math.round(value)));
+  document.getElementById('a4-value').innerText = a4;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.hz) === a4));
+  // Si hay un dron sonando, se reafina en vivo (sin cortes)
+  if (droneOsc && currentDroneMidi !== null && audioCtx) {
+    droneOsc.frequency.linearRampToValueAtTime(midiToFreq(currentDroneMidi), audioCtx.currentTime + 0.06);
+  }
+  updateDroneReadout();
+  if (broadcast) sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
+}
+function changeA4(delta) { setA4(a4 + delta); }
+
+/* --- Teclado --- */
+function buildKeyboard() {
+  const piano = document.getElementById('piano');
+  if (!piano) return;
+  piano.innerHTML = '';
+  const last = kbStart + KB_OCTAVES * 12;           // incluye el DO superior
+  const whites = [];
+  for (let m = kbStart; m <= last; m++) if (!BLACK_PCS.includes(m % 12)) whites.push(m);
+  piano.style.setProperty('--white-count', whites.length);
+
+  whites.forEach(m => piano.appendChild(makeKey(m, 'white')));
+
+  for (let m = kbStart; m <= last; m++) {
+    if (!BLACK_PCS.includes(m % 12)) continue;
+    const key = makeKey(m, 'black');
+    const whitesBelow = whites.filter(w => w < m).length;
+    key.style.left = 'calc(6px + (100% - 12px) * ' + (whitesBelow / whites.length) + ')';
+    piano.appendChild(key);
+  }
+
+  const rangeLabel = document.getElementById('kb-range');
+  if (rangeLabel) rangeLabel.innerText = noteLabel(kbStart) + ' – ' + noteLabel(last);
+  refreshDroneHighlights();
+}
+
+function makeKey(midi, type) {
+  const key = document.createElement('button');
+  key.className = 'key ' + type + (midi % 12 === 0 ? ' is-c' : '');
+  key.dataset.midi = midi;
+  key.title = noteLabel(midi) + ' · ' + midiToFreq(midi).toFixed(1) + ' Hz';
+  key.onclick = () => toggleDrone(midi);
+  const label = document.createElement('span');
+  label.className = 'key-label';
+  // Sólo etiquetamos las blancas; los DO llevan además el número de octava
+  label.innerText = type === 'white' ? (midi % 12 === 0 ? noteLabel(midi) : noteName(midi)) : '';
+  key.appendChild(label);
+  return key;
+}
+
+function shiftOctave(delta) {
+  const next = kbStart + delta * 12;
+  if (next < 24 || next > 60) return;
+  kbStart = next;
+  buildKeyboard();
+}
+
+/* Si el profesor toca algo fuera de la vista del alumno, la desplazamos */
+function ensureKeyVisible(midi) {
+  const last = kbStart + KB_OCTAVES * 12;
+  if (midi >= kbStart && midi <= last) return;
+  let next = kbStart;
+  while (midi < next && next > 24) next -= 12;
+  while (midi > next + KB_OCTAVES * 12 && next < 60) next += 12;
+  if (next !== kbStart) { kbStart = next; buildKeyboard(); }
+}
+
+/* --- Estado visual --- */
+function refreshDroneHighlights() {
+  document.querySelectorAll('.key, .drone-btn').forEach(el => {
+    el.classList.toggle('playing', parseInt(el.dataset.midi) === currentDroneMidi);
+  });
+}
+
+function refreshStringLabels() {
+  document.querySelectorAll('.drone-btn').forEach(btn => {
+    const midi = parseInt(btn.dataset.midi);
+    btn.innerHTML = noteName(midi) + '<small>' + octaveOf(midi) + '</small>';
+    btn.title = noteLabel(midi) + ' · ' + midiToFreq(midi).toFixed(1) + ' Hz';
+  });
+}
+
+function updateDroneReadout() {
+  const out = document.getElementById('drone-readout');
+  if (!out) return;
+  if (currentDroneMidi === null) {
+    out.innerText = translations[currentLang].drone_idle;
+    out.classList.add('idle');
+  } else {
+    out.innerText = noteLabel(currentDroneMidi) + '  ·  ' + midiToFreq(currentDroneMidi).toFixed(1) + ' Hz';
+    out.classList.remove('idle');
+  }
+  refreshStringLabels();
+}
+
+/* --- Motor de sonido --- */
+function toggleDrone(midi, broadcast = true) {
   getAudioContext();
-  // Segundo clic sobre la misma nota = apagar
-  if (currentDroneNote === noteName) { stopDrone(broadcast); return; }
+  if (currentDroneMidi === midi) { stopDrone(broadcast); return; }
   stopDrone(false);
+
   droneOsc = audioCtx.createOscillator(); droneGain = audioCtx.createGain();
-  droneOsc.type = 'sine'; droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime); droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+  droneOsc.type = 'sine';
+  droneOsc.frequency.setValueAtTime(midiToFreq(midi), audioCtx.currentTime);
+  droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+  droneGain.gain.exponentialRampToValueAtTime(0.28, audioCtx.currentTime + 0.1);
   droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination); droneOsc.start();
-  currentDroneNote = noteName;
-  document.getElementById('drone-' + noteName).classList.add('playing');
-  if (broadcast) sendPeerMessage({ type: 'DRONE_START', freq, noteName });
+
+  currentDroneMidi = midi;
+  ensureKeyVisible(midi);
+  refreshDroneHighlights();
+  updateDroneReadout();
+  if (broadcast) sendPeerMessage({ type: 'DRONE_START', midi });
 }
 
 function stopDrone(broadcast = true) {
   // Guardamos referencias locales: si no, el setTimeout apagaba el oscilador
   // nuevo cuando se cambiaba de una nota a otra.
   const osc = droneOsc, gain = droneGain;
-  droneOsc = null; droneGain = null; currentDroneNote = null;
+  droneOsc = null; droneGain = null; currentDroneMidi = null;
 
   if (gain && audioCtx) {
     const t = audioCtx.currentTime;
@@ -417,7 +552,8 @@ function stopDrone(broadcast = true) {
   }
   if (osc) setTimeout(() => { try { osc.stop(); osc.disconnect(); } catch (e) {} }, 60);
 
-  document.querySelectorAll('.drone-btn').forEach(b => b.classList.remove('playing'));
+  refreshDroneHighlights();
+  updateDroneReadout();
   if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
 }
 
@@ -430,7 +566,8 @@ function handleData(data) {
   else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
   else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
   else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
-  else if (data.type === 'DRONE_START') { toggleDrone(data.freq, data.noteName, false); }
+  else if (data.type === 'TUNING_CHANGE') { setA4(data.a4, false); }
+  else if (data.type === 'DRONE_START') { toggleDrone(data.midi, false); }
   else if (data.type === 'DRONE_STOP') { stopDrone(false); }
 }
 
