@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aula remota | Díaz-Núñez Music Studio</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="brand">← Díaz-Núñez Studio</a>
+    <nav>
+      <a href="index.html#profesores" data-i18n="nav_teachers">Profesores</a>
+      <a href="index.html#solicitar" data-i18n="nav_request">Solicitar clase</a>
+      <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN / ES</button>
+    </nav>
+  </header>
+
+  <section id="studio" class="container">
+    <h2 class="section-title" data-i18n="studio_title">Aula de Práctica Sincronizada</h2>
+    <div class="studio-box">
+      
+      <div class="studio-header">
+        <span class="status-badge">
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text" data-i18n="st_waiting">Esperando conexión...</span>
+        </span>
+        <div id="peer-id-block" style="font-size: 0.85rem; color: var(--text-muted);">
+          ID: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
+        </div>
+      </div>
+
+      <!-- Login de Profesor -->
+      <div id="teacher-login-panel">
+        <h3 style="color: #fff; margin-bottom: 1rem;" data-i18n="login_title">Acceso a Panel de Profesor</h3>
+        <input type="password" id="teacher-password" class="login-input" placeholder="Clave de acceso" />
+        <button class="btn-cta" onclick="authenticateTeacher()" data-i18n="btn_login">Desbloquear Aula</button>
+        <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Clave incorrecta.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1.2rem;" data-i18n="student_hint">¿Eres alumno? Necesitas el enlace que te envía tu profesor.</p>
+      </div>
+
+      <!-- Panel de ingreso para el Alumno -->
+      <div id="student-join-panel">
+        <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem;" data-i18n="join_title">¡Bienvenido a la clase!</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic abajo para activar el sonido y conectar.</p>
+        <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
+      </div>
+
+      <!-- Herramientas del Profesor -->
+      <div id="teacher-share-box">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+          <div style="flex: 1; min-width: 250px;">
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Enlace para el alumno:</p>
+            <div class="share-container" style="margin-top: 0;">
+              <input type="text" id="student-link-input" readonly />
+              <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink(this)">Copiar</button>
+            </div>
+          </div>
+          <div>
+            <button id="btn-toggle-student-auth" class="tool-btn" style="border-color: var(--warning); color: var(--warning);" onclick="toggleStudentPermissions()">
+              🔒 Alumno Bloqueado (Clic para permitir)
+            </button>
+          </div>
+        </div>
+
+        <!-- Enrutado del audio de las herramientas -->
+        <div class="audio-routing">
+          <span class="block-caption" data-i18n="routing_label">¿Dónde suenan el metrónomo y los drones?</span>
+          <div class="routing-switches">
+            <label class="switch">
+              <input type="checkbox" id="sw-local-audio" checked onchange="setLocalAudio(this.checked)" />
+              <span class="switch-track"></span>
+              <span class="switch-text" data-i18n="routing_local">En mi equipo</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="sw-remote-audio" checked onchange="setRemoteAudio(this.checked)" />
+              <span class="switch-track"></span>
+              <span class="switch-text" data-i18n="routing_remote">En el equipo del alumno</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1.5rem;"></div>
+
+      <!-- Controles Principales -->
+      <div class="controls-grid" id="main-controls">
+        
+        <!-- SECCIÓN DE VIDEOLLAMADA (ESTILO ZOOM PRO) -->
+        <div class="card-inner" style="grid-column: 1 / -1; padding: 1.4rem;">
+          <h4 data-i18n="video_heading">Videollamada Integrada</h4>
+          <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 1rem;" data-i18n="video_hint">⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.</p>
+          
+          <button class="btn-cta" id="btn-start-video" onclick="startVideo()" style="width: 100%; margin-bottom: 1rem;" data-i18n="btn_start_video">
+            Encender Cámara y Micrófono
+          </button>
+
+          <!-- Contenedor Zoom (Oculto hasta encender cámara) -->
+          <div id="video-conference-container" class="pip-mode" style="display: none;">
+            
+            <div class="video-grid-layout" id="video-grid">
+              <!-- Video Remoto (El Grande) -->
+              <div class="video-box remote-box">
+                 <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando a que la otra persona encienda su cámara...</div>
+                 <video id="remote-video" autoplay playsinline></video>
+                 <div class="video-label" data-i18n="vid_remote">Remoto</div>
+              </div>
+              
+              <!-- Video Local (El Pequeño Arrastrable) -->
+              <div class="video-box local-box" id="draggable-local">
+                 <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
+                 <video id="local-video" autoplay playsinline muted></video>
+                 <div class="video-label">Tú</div>
+              </div>
+            </div>
+            
+            <!-- Barra de Controles Flotante / Inferior -->
+            <div class="call-controls-bar" id="call-controls">
+              <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 <span data-i18n="btn_mute">Silenciar</span></button>
+              <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 <span data-i18n="btn_cam_off">Apagar Cámara</span></button>
+              <button class="call-btn" id="btn-toggle-layout" onclick="toggleViewLayout()">🔲 <span data-i18n="btn_layout">Cambiar Vista</span></button>
+              <button class="call-btn btn-fullscreen" onclick="toggleFullScreen()">⛶ <span data-i18n="btn_fullscreen">Pantalla Completa</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrónomo -->
+        <div class="card-inner">
+          <div class="card-head">
+            <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
+            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
+          </div>
+
+          <!-- Lo que ve el alumno: un monitor, no una consola apagada -->
+          <div class="student-monitor">
+            <span class="monitor-caption" data-i18n="mon_tempo">Tempo de la clase</span>
+            <div class="monitor-value"><span id="mon-bpm">100</span><small>BPM</small><em id="mon-ts">4/4</em></div>
+          </div>
+
+          <div class="teacher-controls">
+            <div class="tempo-display" id="bpm-display">100</div>
+            <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
+            <div style="margin-bottom: 1rem;">
+              <div class="btn-group">
+                <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
+                <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
+                <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
+                <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
+              </div>
+            </div>
+            <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
+          </div>
+
+          <!-- Pulso visual: el alumno ve el compás aunque tenga el violín en la barbilla -->
+          <div class="beat-dots" id="beat-dots"></div>
+        </div>
+
+        <!-- Afinación: LA de referencia + cuerdas al aire + teclado -->
+        <div class="card-inner" id="tuner-card">
+          <div class="card-head">
+            <h4 data-i18n="drone_heading">Drones de Afinación</h4>
+            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
+          </div>
+
+          <div class="student-monitor">
+            <span class="monitor-caption" data-i18n="mon_pitch">Nota de referencia</span>
+            <div class="monitor-value"><span id="mon-note">—</span></div>
+            <div class="monitor-sub">LA = <span id="mon-a4">440</span> Hz</div>
+          </div>
+
+          <div class="teacher-controls">
+          <div class="tuner-top">
+            <!-- Calibración del LA -->
+            <div class="tuner-block">
+              <span class="block-caption" data-i18n="calib_label">LA de referencia</span>
+              <div class="calib-row">
+                <button class="calib-step" onclick="changeA4(-1)" aria-label="-1 Hz">−</button>
+                <div class="calib-value"><span id="a4-value">440</span><small>Hz</small></div>
+                <button class="calib-step" onclick="changeA4(1)" aria-label="+1 Hz">+</button>
+              </div>
+              <div class="calib-presets">
+                <button class="preset-btn" data-hz="415" onclick="setA4(415)">415</button>
+                <button class="preset-btn" data-hz="430" onclick="setA4(430)">430</button>
+                <button class="preset-btn" data-hz="440" onclick="setA4(440)">440</button>
+                <button class="preset-btn" data-hz="441" onclick="setA4(441)">441</button>
+                <button class="preset-btn" data-hz="442" onclick="setA4(442)">442</button>
+                <button class="preset-btn" data-hz="443" onclick="setA4(443)">443</button>
+                <button class="preset-btn" data-hz="444" onclick="setA4(444)">444</button>
+              </div>
+            </div>
+
+            <!-- Cuerdas al aire -->
+            <div class="tuner-block">
+              <span class="block-caption" data-i18n="open_strings">Cuerdas al aire</span>
+              <div class="drone-grid">
+                <button class="drone-btn" data-midi="48" onclick="toggleDrone(48)"></button>
+                <button class="drone-btn" data-midi="55" onclick="toggleDrone(55)"></button>
+                <button class="drone-btn" data-midi="62" onclick="toggleDrone(62)"></button>
+                <button class="drone-btn" data-midi="69" onclick="toggleDrone(69)"></button>
+                <button class="drone-btn" data-midi="76" onclick="toggleDrone(76)"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Teclado -->
+          <div class="keyboard-bar">
+            <span class="block-caption" data-i18n="keyboard_label">Teclado cromático</span>
+            <div class="octave-controls">
+              <button class="tool-btn octave-btn" onclick="shiftOctave(-1)">−8va</button>
+              <span class="range-label" id="kb-range">—</span>
+              <button class="tool-btn octave-btn" onclick="shiftOctave(1)">+8va</button>
+            </div>
+          </div>
+          <div class="keyboard-scroll">
+            <div class="piano" id="piano"></div>
+          </div>
+
+          <div class="tuner-footer">
+            <div class="now-playing" id="drone-readout">—</div>
+            <button class="tool-btn" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
+          </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Díaz-Núñez Music Studio. Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
