@@ -4,12 +4,12 @@ let isStudentAllowed = false;
 
 const translations = {
   es: { 
-    nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando cámara del otro participante...", vid_remote: "Remoto", 
-    btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla Completa"
+    nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
+    btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista"
   },
   en: { 
-    nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant's camera...", vid_remote: "Remote",
-    btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Full Screen"
+    nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
+    btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View"
   }
 };
 
@@ -36,7 +36,7 @@ function initSystem() {
     document.getElementById('teacher-login-panel').style.display = 'none';
     document.getElementById('student-join-panel').style.display = 'block';
     document.getElementById('main-controls').style.display = 'grid'; 
-    lockStudentInterface(true); 
+    lockStudentInterface(true); // Bloquea botones de metrónomo/drone
     initPeerClient();
   } else {
     document.getElementById('teacher-login-panel').style.display = 'block';
@@ -100,10 +100,7 @@ function setupConn(conn) {
   conn.on('open', () => { 
     setStatus("Conectado en Vivo", "connected"); 
     if(currentRole === 'teacher') sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
-    
-    if(localStream && conn.peer) {
-      makeCall(conn.peer);
-    }
+    if(localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
   conn.on('close', () => { setStatus(currentRole === 'teacher' ? "Alumno desconectado" : "Profesor desconectado", "error"); });
@@ -112,7 +109,9 @@ function setupConn(conn) {
 function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
 function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
 
-/* LÓGICA DE VIDEOLLAMADA, PANTALLA COMPLETA Y BOTONES */
+/* ----------------------------------------------------
+   LÓGICA DE VIDEO, PANTALLA COMPLETA Y ARRASTRE
+   ---------------------------------------------------- */
 let localStream = null;
 let currentCall = null;
 let pendingCall = null;
@@ -135,19 +134,15 @@ async function startVideo() {
     document.getElementById('local-placeholder').style.display = 'none';
     btn.style.display = 'none'; 
     
-    // Revelar la interfaz de videollamada tipo Zoom
+    // Revelar la interfaz de videollamada
     document.getElementById('video-conference-container').style.display = 'flex';
 
-    if (activeConnection && activeConnection.peer) {
-      makeCall(activeConnection.peer);
-    }
-
+    if (activeConnection && activeConnection.peer) makeCall(activeConnection.peer);
     if (pendingCall) {
       pendingCall.answer(localStream);
       setupCallEvents(pendingCall);
       pendingCall = null;
     }
-
   } catch(err) {
     console.error("Error media:", err);
     alert("No se pudo acceder a la cámara o micrófono. Revisa los permisos de tu navegador.");
@@ -160,13 +155,7 @@ function toggleMic() {
   if (!localStream) return;
   isMicOn = !isMicOn;
   localStream.getAudioTracks().forEach(track => track.enabled = isMicOn);
-  
-  const btn = document.getElementById('btn-toggle-mic');
-  if (isMicOn) {
-    btn.classList.remove('disabled');
-  } else {
-    btn.classList.add('disabled');
-  }
+  document.getElementById('btn-toggle-mic').classList.toggle('disabled', !isMicOn);
   updateMediaButtonsText();
 }
 
@@ -174,21 +163,29 @@ function toggleCam() {
   if (!localStream) return;
   isCamOn = !isCamOn;
   localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
-  
-  const btn = document.getElementById('btn-toggle-cam');
-  if (isCamOn) {
-    btn.classList.remove('disabled');
-  } else {
-    btn.classList.add('disabled');
-  }
+  document.getElementById('btn-toggle-cam').classList.toggle('disabled', !isCamOn);
   updateMediaButtonsText();
+}
+
+function toggleViewLayout() {
+  const container = document.getElementById('video-conference-container');
+  const localBox = document.getElementById('draggable-local');
+  
+  if (container.classList.contains('pip-mode')) {
+    container.classList.remove('pip-mode');
+    container.classList.add('gallery-mode');
+    // Reiniciar estilos de arrastre
+    localBox.style.top = ''; localBox.style.left = ''; localBox.style.right = ''; localBox.style.bottom = '';
+  } else {
+    container.classList.remove('gallery-mode');
+    container.classList.add('pip-mode');
+  }
 }
 
 function updateMediaButtonsText() {
   const micSpan = document.querySelector('#btn-toggle-mic span');
   const camSpan = document.querySelector('#btn-toggle-cam span');
   const fsSpan = document.querySelector('.btn-fullscreen span');
-  
   if (!micSpan || !camSpan) return;
 
   micSpan.innerText = translations[currentLang][isMicOn ? "btn_mute" : "btn_unmute"];
@@ -196,36 +193,73 @@ function updateMediaButtonsText() {
   if(fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
 }
 
-/* Funcionalidad de Pantalla Completa (Fullscreen) */
+/* --- Pantalla Completa --- */
 function toggleFullScreen() {
   const container = document.getElementById('video-conference-container');
-  
   if (!document.fullscreenElement) {
-    if (container.requestFullscreen) {
-      container.requestFullscreen();
-    } else if (container.webkitRequestFullscreen) { /* Safari */
-      container.webkitRequestFullscreen();
-    } else if (container.msRequestFullscreen) { /* IE11 */
-      container.msRequestFullscreen();
-    }
+    if (container.requestFullscreen) container.requestFullscreen();
+    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen(); // Safari
     isFullScreen = true;
   } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) { /* Safari */
-      document.webkitExitFullscreen();
-    }
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); // Safari
     isFullScreen = false;
   }
   updateMediaButtonsText();
 }
 
-// Escuchar si el usuario sale de pantalla completa usando la tecla 'Escape'
 document.addEventListener('fullscreenchange', () => {
     isFullScreen = !!document.fullscreenElement;
     updateMediaButtonsText();
 });
 
+/* --- Lógica de Arrastre para PiP (Picture in Picture) --- */
+const localBox = document.getElementById('draggable-local');
+let isDragging = false;
+let offsetX, offsetY;
+
+function startDrag(e) {
+  if (!document.getElementById('video-conference-container').classList.contains('pip-mode')) return;
+  isDragging = true;
+  const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+  const rect = localBox.getBoundingClientRect();
+  offsetX = clientX - rect.left;
+  offsetY = clientY - rect.top;
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  e.preventDefault(); // Evita scroll en móviles al arrastrar
+  
+  const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+  
+  const gridLayout = document.getElementById('video-grid').getBoundingClientRect();
+  
+  let x = clientX - gridLayout.left - offsetX;
+  let y = clientY - gridLayout.top - offsetY;
+
+  // Limitar para que no se salga de la pantalla negra
+  x = Math.max(0, Math.min(x, gridLayout.width - localBox.offsetWidth));
+  y = Math.max(0, Math.min(y, gridLayout.height - localBox.offsetHeight));
+
+  localBox.style.left = x + 'px';
+  localBox.style.top = y + 'px';
+  localBox.style.bottom = 'auto'; // Elimina la posición por defecto del CSS
+  localBox.style.right = 'auto';
+}
+
+function stopDrag() { isDragging = false; }
+
+localBox.addEventListener('mousedown', startDrag);
+localBox.addEventListener('touchstart', startDrag, {passive: false});
+document.addEventListener('mousemove', drag);
+document.addEventListener('touchmove', drag, {passive: false});
+document.addEventListener('mouseup', stopDrag);
+document.addEventListener('touchend', stopDrag);
+
+/* --- Conexión de Llamadas --- */
 function makeCall(remoteId) {
   if (!localStream) return;
   currentCall = peer.call(remoteId, localStream);
@@ -266,7 +300,7 @@ function toggleStudentPermissions() {
     btn.innerText = "🔓 Alumno Desbloqueado (Clic para bloquear)";
     btn.style.color = "var(--success)"; btn.style.borderColor = "var(--success)";
   } else {
-    btn.innerText = "🔒 Alumno Bloqueado (Clic para permitir control)";
+    btn.innerText = "🔒 Alumno Bloqueado (Clic para permitir)";
     btn.style.color = "var(--warning)"; btn.style.borderColor = "var(--warning)";
   }
   sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
@@ -342,7 +376,7 @@ function stopDrone(broadcast = true) {
   if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
 }
 
-/* 6. MANEJO DE MENSAJES RECIBIDOS (BIDIRECCIONAL) */
+/* 6. MANEJO DE MENSAJES RECIBIDOS */
 function handleData(data) {
   if (data.type === 'PERMISSIONS') {
     if(currentRole === 'student') lockStudentInterface(!data.allowed);
