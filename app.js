@@ -7,13 +7,17 @@ const translations = {
     nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
     btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
-    student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
+    student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
+    st_waiting: "Esperando conexión...", st_generating: "Generando sala...", st_wait_student: "Esperando al alumno...", st_ready: "Listo para conectar...", st_connecting: "Conectando con tu profesor...", st_live: "Conectado en vivo", st_student_left: "El alumno se desconectó", st_teacher_left: "Tu profesor se desconectó",
+    lock_badge: "🔒 Lo controla tu profesor", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
     btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View",
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
-    student_hint: "Are you a student? You need the link your teacher sends you.", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
+    student_hint: "Are you a student? You need the link your teacher sends you.",
+    st_waiting: "Waiting for connection...", st_generating: "Creating room...", st_wait_student: "Waiting for the student...", st_ready: "Ready to connect...", st_connecting: "Connecting to your teacher...", st_live: "Live", st_student_left: "The student disconnected", st_teacher_left: "Your teacher disconnected",
+    lock_badge: "🔒 Your teacher controls this", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
 
@@ -31,7 +35,8 @@ function applyLanguage(lang) {
   document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES'; 
   document.querySelectorAll('[data-i18n]').forEach(el => { 
     if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')]; 
-  }); 
+  });
+  if (lastStatusKey) setStatus(lastStatusKey, document.getElementById('status-dot').className.replace('dot ', ''));
 }
 
 /* 2. LÓGICA DE ROLES Y AUTH */
@@ -59,6 +64,8 @@ function enterStudio() {
 function initSystem() {
   applyLanguage(currentLang);
   setA4(a4, false);
+  buildBeatDots();
+  requestAnimationFrame(beatLoop);
   buildKeyboard();
   refreshStringLabels();
   updateDroneReadout();
@@ -66,6 +73,7 @@ function initSystem() {
   
   if (joinIdFromUrl) {
     currentRole = 'student';
+    document.body.classList.add('student-view');
     document.getElementById('teacher-login-panel').style.display = 'none';
     document.getElementById('student-join-panel').style.display = 'block';
     document.getElementById('main-controls').style.display = 'grid'; 
@@ -91,13 +99,15 @@ function authenticateTeacher() {
 }
 
 /* 3. PEERJS (WEBRTC) - DATOS Y VIDEOLLAMADA */
-function setStatus(text, state) { 
-  document.getElementById('status-text').innerText = text; 
-  document.getElementById('status-dot').className = 'dot ' + state; 
+let lastStatusKey = 'st_waiting';
+function setStatus(key, state) {
+  lastStatusKey = key;
+  document.getElementById('status-text').innerText = translations[currentLang][key] || key;
+  document.getElementById('status-dot').className = 'dot ' + state;
 }
 
 function initPeerTeacher() {
-  setStatus("Generando sala...", "warning");
+  setStatus('st_generating', 'warning');
   peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
   peer.on('open', (id) => {
     document.getElementById('peer-id-label').innerText = id;
@@ -105,14 +115,14 @@ function initPeerTeacher() {
     // del profesor dejaba el '?join=' dentro del hash y el alumno nunca lo veía.
     const base = window.location.href.split('#')[0].split('?')[0];
     document.getElementById('student-link-input').value = base + '?join=' + id + '#studio';
-    setStatus("Esperando al alumno...", "warning");
+    setStatus('st_wait_student', 'warning');
   });
   peer.on('connection', (conn) => { activeConnection = conn; setupConn(conn); });
   setupCallListener();
 }
 
 function initPeerClient() {
-  setStatus("Listo para conectar...", "warning");
+  setStatus('st_ready', 'warning');
   peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
   peer.on('open', (id) => { document.getElementById('peer-id-label').innerText = "Alumno"; });
   setupCallListener();
@@ -128,7 +138,7 @@ function studentJoinClass() {
     unlockOsc.start(ctx.currentTime); unlockOsc.stop(ctx.currentTime + 0.001);
 
     document.getElementById('student-join-panel').style.display = 'none';
-    setStatus("Conectando con profesor...", "warning");
+    setStatus('st_connecting', 'warning');
     const doConnect = () => {
       const conn = peer.connect(joinIdFromUrl);
       activeConnection = conn; setupConn(conn);
@@ -140,7 +150,7 @@ function studentJoinClass() {
 
 function setupConn(conn) {
   conn.on('open', () => { 
-    setStatus("Conectado en Vivo", "connected"); 
+    setStatus('st_live', 'connected'); 
     if(currentRole === 'teacher') {
       sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
       sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
@@ -148,7 +158,7 @@ function setupConn(conn) {
     if(localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
-  conn.on('close', () => { setStatus(currentRole === 'teacher' ? "Alumno desconectado" : "Profesor desconectado", "error"); });
+  conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
 }
 
 function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
@@ -376,15 +386,44 @@ function toggleStudentPermissions() {
 }
 
 function lockStudentInterface(lock) {
-  document.getElementById('lock-metro').style.display = lock ? 'block' : 'none';
-  document.getElementById('lock-drone').style.display = lock ? 'block' : 'none';
+  // El alumno bloqueado no ve los controles desactivados: ve un monitor de la clase
+  document.body.classList.toggle('student-locked', lock);
 }
 
 /* 5. AUDIO (METRÓNOMO Y AFINADOR) */
 let audioCtx = null; let isPlaying = false; let bpm = 100; let beatsPerBar = 4; let currentBeat = 0; let nextNoteTime = 0.0; let timerID = null;
 function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 
+const beatQueue = [];
+
+function buildBeatDots() {
+  const box = document.getElementById('beat-dots');
+  if (!box) return;
+  box.innerHTML = '';
+  for (let i = 0; i < beatsPerBar; i++) {
+    const d = document.createElement('span');
+    d.className = 'beat-dot' + (i === 0 ? ' strong' : '');
+    box.appendChild(d);
+  }
+}
+
+function markBeat(n) {
+  document.querySelectorAll('.beat-dot').forEach((d, i) => d.classList.toggle('on', i === n));
+}
+
+/* El clic se agenda con antelación, así que la luz se dispara cuando
+   el audio realmente suena, no cuando se programó. */
+function beatLoop() {
+  if (audioCtx) {
+    let ultimo = -1;
+    while (beatQueue.length && beatQueue[0].time <= audioCtx.currentTime) ultimo = beatQueue.shift().beat;
+    if (ultimo >= 0) markBeat(ultimo);
+  }
+  requestAnimationFrame(beatLoop);
+}
+
 function scheduleNote(beatNumber, time) {
+  beatQueue.push({ beat: beatNumber, time });
   const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
   osc.frequency.value = (beatNumber === 0) ? 1000 : 650;
@@ -403,7 +442,7 @@ function scheduler() {
 function toggleMetronome(broadcast = true) {
   getAudioContext();
   if (isPlaying) {
-    isPlaying = false; clearTimeout(timerID);
+    isPlaying = false; clearTimeout(timerID); beatQueue.length = 0; markBeat(-1);
     document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro; 
     document.getElementById('btn-play-metro').classList.remove('active');
     if (broadcast) sendPeerMessage({ type: 'METRO_STOP' });
@@ -417,11 +456,14 @@ function toggleMetronome(broadcast = true) {
 
 function onTempoChange(val, broadcast = true) {
   bpm = parseInt(val); document.getElementById('bpm-display').innerText = bpm; document.getElementById('tempo-slider').value = bpm;
+  document.getElementById('mon-bpm').innerText = bpm;
   if (broadcast) sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
 }
 
 function setTimeSignature(sig, broadcast = true) {
   beatsPerBar = sig; currentBeat = 0;
+  document.getElementById('mon-ts').innerText = sig === 6 ? '6/8' : sig + '/4';
+  buildBeatDots();
   document.querySelectorAll('.ts-btn').forEach(b => b.classList.remove('active')); 
   document.getElementById('ts-' + sig).classList.add('active');
   if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
@@ -447,6 +489,7 @@ function noteLabel(midi) { return noteName(midi) + octaveOf(midi); }
 function setA4(value, broadcast = true) {
   a4 = Math.min(466, Math.max(415, Math.round(value)));
   document.getElementById('a4-value').innerText = a4;
+  document.getElementById('mon-a4').innerText = a4;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.hz) === a4));
   // Si hay un dron sonando, se reafina en vivo (sin cortes)
   if (droneOsc && currentDroneMidi !== null && audioCtx) {
@@ -555,12 +598,16 @@ function refreshStringLabels() {
 function updateDroneReadout() {
   const out = document.getElementById('drone-readout');
   if (!out) return;
+  const mon = document.getElementById('mon-note');
   if (currentDroneMidi === null) {
     out.innerText = translations[currentLang].drone_idle;
     out.classList.add('idle');
+    if (mon) mon.innerText = '—';
   } else {
-    out.innerText = noteLabel(currentDroneMidi) + '  ·  ' + midiToFreq(currentDroneMidi).toFixed(1) + ' Hz';
+    const txt = noteLabel(currentDroneMidi) + '  ·  ' + midiToFreq(currentDroneMidi).toFixed(1) + ' Hz';
+    out.innerText = txt;
     out.classList.remove('idle');
+    if (mon) mon.innerText = txt;
   }
   refreshStringLabels();
 }
