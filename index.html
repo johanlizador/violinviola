@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Díaz-Núñez Music Studio | Strings Academy & Live Classroom</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <!-- Enlace al archivo de estilos -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -68,7 +67,7 @@
           </div>
           <div>
             <button id="btn-toggle-student-auth" class="tool-btn" style="border-color: var(--warning); color: var(--warning);" onclick="toggleStudentPermissions()">
-              🔒 Alumno Bloqueado (Clic para permitir control)
+              🔒 Alumno Bloqueado (Clic para permitir)
             </button>
           </div>
         </div>
@@ -79,33 +78,38 @@
       <!-- Controles Principales -->
       <div class="controls-grid" id="main-controls">
         
-        <!-- SECCIÓN DE VIDEOLLAMADA -->
-        <div class="card-inner" style="grid-column: 1 / -1;">
+        <!-- SECCIÓN DE VIDEOLLAMADA ESTILO ZOOM -->
+        <div class="card-inner" style="grid-column: 1 / -1; padding: 1.4rem;">
           <h4 data-i18n="video_heading">Videollamada Integrada</h4>
           <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 1rem;" data-i18n="video_hint">⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.</p>
           
-          <button class="tool-btn primary" id="btn-start-video" onclick="startVideo()" style="width: 100%; margin-bottom: 1rem;" data-i18n="btn_start_video">
+          <button class="btn-cta" id="btn-start-video" onclick="startVideo()" style="width: 100%; margin-bottom: 1rem;" data-i18n="btn_start_video">
             Encender Cámara y Micrófono
           </button>
 
-          <!-- Botones de Silenciar y Apagar Cámara -->
-          <div class="call-controls" id="call-controls">
-            <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 Silenciar Micrófono</button>
-            <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 Apagar Cámara</button>
+          <!-- Contenedor que simula la ventana de Zoom -->
+          <div id="video-conference-container" style="display: none;">
+            <div class="video-grid-layout">
+              <div class="video-box">
+                 <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
+                 <video id="local-video" autoplay playsinline muted></video>
+                 <div class="video-label">Local (Tú)</div>
+              </div>
+              <div class="video-box">
+                 <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando cámara del otro participante...</div>
+                 <video id="remote-video" autoplay playsinline></video>
+                 <div class="video-label" data-i18n="vid_remote">Remoto</div>
+              </div>
+            </div>
+            
+            <!-- Barra de Controles Inferior -->
+            <div class="call-controls-bar">
+              <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 <span data-i18n="btn_mute">Silenciar</span></button>
+              <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 <span data-i18n="btn_cam_off">Apagar Cámara</span></button>
+              <button class="call-btn btn-fullscreen" onclick="toggleFullScreen()">⛶ <span data-i18n="btn_fullscreen">Pantalla Completa</span></button>
+            </div>
           </div>
 
-          <div class="video-wrapper">
-            <div class="video-box">
-               <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
-               <video id="local-video" autoplay playsinline muted></video>
-               <div class="video-label">Local (Tú)</div>
-            </div>
-            <div class="video-box">
-               <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando cámara del otro participante...</div>
-               <video id="remote-video" autoplay playsinline></video>
-               <div class="video-label" data-i18n="vid_remote">Remoto</div>
-            </div>
-          </div>
         </div>
 
         <!-- Metrónomo -->
@@ -163,7 +167,6 @@
     <p>&copy; 2026 Díaz-Núñez Music Studio. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- Enlace al archivo de lógica -->
   <script src="app.js"></script>
 </body>
 </html>
