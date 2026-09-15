@@ -13,7 +13,7 @@
     <a href="#" class="brand">Díaz-Núñez Studio</a>
     <nav>
       <a href="#teachers" data-i18n="nav_teachers">Profesores</a>
-      <a href="#studio" data-i18n="nav_studio">Aula Remota</a>
+      <a href="#studio" onclick="enterStudio(); return false;" data-i18n="nav_studio">Aula Remota</a>
       <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN / ES</button>
     </nav>
   </header>
@@ -22,7 +22,7 @@
     <div class="container">
       <h1 data-i18n="hero_title">Excelencia e Innovación en Cuerdas</h1>
       <p data-i18n="hero_subtitle">Clases privadas de Violín y Viola respaldadas por formación internacional y herramientas acústicas sincronizadas.</p>
-      <a href="#studio" class="btn-cta" data-i18n="hero_cta">Entrar al Aula</a>
+      <a href="#studio" class="btn-cta" onclick="enterStudio(); return false;" data-i18n="hero_cta">Entrar al Aula</a>
     </div>
   </section>
 
@@ -46,6 +46,7 @@
         <input type="password" id="teacher-password" class="login-input" placeholder="Clave de acceso" />
         <button class="btn-cta" onclick="authenticateTeacher()" data-i18n="btn_login">Desbloquear Aula</button>
         <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Clave incorrecta.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1.2rem;" data-i18n="student_hint">¿Eres alumno? Necesitas el enlace que te envía tu profesor.</p>
       </div>
 
       <!-- Panel de ingreso para el Alumno -->
