@@ -7,13 +7,13 @@ const translations = {
     nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
     btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
-    calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
+    student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
     btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View",
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
-    calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
+    student_hint: "Are you a student? You need the link your teacher sends you.", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
 
@@ -36,6 +36,25 @@ function applyLanguage(lang) {
 
 /* 2. LÓGICA DE ROLES Y AUTH */
 let peer = null; let activeConnection = null; let currentRole = 'visitor'; let joinIdFromUrl = null;
+let hasJoined = false;
+
+function getJoinId() {
+  const fromQuery = new URLSearchParams(window.location.search).get('join');
+  if (fromQuery) return fromQuery;
+  // Rescate de enlaces antiguos del tipo  .../index.html#studio?join=ID
+  const hash = window.location.hash;
+  const q = hash.indexOf('?');
+  if (q !== -1) return new URLSearchParams(hash.slice(q)).get('join');
+  return null;
+}
+
+/* "Entrar al Aula": para el alumno no es sólo bajar la página, es conectarse.
+   Además el clic sirve de gesto para desbloquear el audio del navegador. */
+function enterStudio() {
+  const studio = document.getElementById('studio');
+  if (studio) studio.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (currentRole === 'student' && !hasJoined) studentJoinClass();
+}
 
 function initSystem() {
   applyLanguage(currentLang);
@@ -43,8 +62,7 @@ function initSystem() {
   buildKeyboard();
   refreshStringLabels();
   updateDroneReadout();
-  const urlParams = new URLSearchParams(window.location.search);
-  joinIdFromUrl = urlParams.get('join');
+  joinIdFromUrl = getJoinId();
   
   if (joinIdFromUrl) {
     currentRole = 'student';
@@ -83,7 +101,10 @@ function initPeerTeacher() {
   peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
   peer.on('open', (id) => {
     document.getElementById('peer-id-label').innerText = id;
-    document.getElementById('student-link-input').value = window.location.href.split('?')[0] + '?join=' + id;
+    // Quitamos primero el #hash y luego la query: si no, un '#studio' en la URL
+    // del profesor dejaba el '?join=' dentro del hash y el alumno nunca lo veía.
+    const base = window.location.href.split('#')[0].split('?')[0];
+    document.getElementById('student-link-input').value = base + '?join=' + id + '#studio';
     setStatus("Esperando al alumno...", "warning");
   });
   peer.on('connection', (conn) => { activeConnection = conn; setupConn(conn); });
@@ -98,6 +119,8 @@ function initPeerClient() {
 }
 
 function studentJoinClass() {
+  if (hasJoined) return;
+  hasJoined = true;
   const ctx = getAudioContext();
   ctx.resume().then(() => {
     const unlockOsc = ctx.createOscillator(); const unlockGain = ctx.createGain();
