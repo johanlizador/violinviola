@@ -5,76 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Díaz-Núñez Music Studio | Strings Academy & Live Classroom</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <style>
-    :root { --bg-main: #0d1117; --bg-card: #161b22; --bg-card-hover: #1f242c; --border-color: #30363d; --accent-gold: #e5a93c; --accent-gold-hover: #f3be5d; --text-main: #f0f6fc; --text-muted: #8b949e; --success: #2ea043; --danger: #da3633; --warning: #d29922; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-family); line-height: 1.6; scroll-behavior: smooth; }
-    header { position: sticky; top: 0; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; }
-    nav { display: flex; align-items: center; gap: 1.2rem; }
-    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; }
-    nav a:hover { color: var(--text-main); }
-    .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
-    
-    .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.2rem; }
-    .hero { text-align: center; padding: 4rem 1rem 3rem 1rem; border-bottom: 1px solid var(--border-color); }
-    .hero h1 { font-size: 2.6rem; margin-bottom: 1rem; color: #fff; }
-    .hero p { color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem auto; font-size: 1.15rem; }
-    .btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; }
-    .section-title { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent-gold); }
-
-    .studio-box { background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: 14px; padding: 2rem; margin: 3rem 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
-    .studio-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; background: #21262d; border: 1px solid var(--border-color); }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 5px rgba(255,255,255,0.2); }
-    .dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
-
-    #teacher-login-panel { text-align: center; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-main); }
-    .login-input { padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: #090d12; color: var(--accent-gold); margin-right: 0.5rem; outline: none; font-size: 1rem; text-align: center; letter-spacing: 2px; }
-    #student-join-panel { display: none; text-align: center; padding: 2rem; border: 1px solid var(--accent-gold); border-radius: 8px; margin-bottom: 1.5rem; background: rgba(229, 169, 60, 0.05); }
-    #teacher-share-box { display: none; margin-bottom: 1.5rem; }
-
-    .controls-grid { display: none; grid-template-columns: 1fr 1fr; gap: 1.5rem; } 
-    @media (max-width: 700px) { .controls-grid { grid-template-columns: 1fr; } }
-    .card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; position: relative; }
-    
-    .lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.6); z-index: 10; border-radius: 10px; display: none; cursor: not-allowed; }
-
-    .tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
-    input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
-    .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
-    .tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
-    .tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
-    
-    .drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
-    .drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
-    
-    .share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-    .share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
-
-    /* ESTILOS DE VIDEOLLAMADA Y BOTONES DE CONTROL */
-    .video-wrapper { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; justify-content: center; }
-    .video-box { flex: 1; min-width: 250px; max-width: 500px; background: #000; border-radius: 8px; overflow: hidden; position: relative; aspect-ratio: 16/9; border: 1px solid var(--border-color); }
-    .video-box video { width: 100%; height: 100%; object-fit: cover; }
-    .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: #fff; }
-    .video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 1rem; }
-    
-    .call-controls { display: none; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
-    .call-btn { padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: all 0.2s; }
-    .call-btn.disabled { background: rgba(218, 54, 51, 0.1); color: var(--danger); border-color: var(--danger); }
-
-    /* Profesores */
-    .teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
-    @media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
-    .teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; }
-    .teacher-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
-    .teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
-    .teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
-    footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
-  </style>
+  <!-- Enlace al archivo de estilos -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
@@ -124,7 +56,7 @@
         <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
       </div>
 
-      <!-- Herramientas del Profesor (Solo visibles post-login) -->
+      <!-- Herramientas del Profesor -->
       <div id="teacher-share-box">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
           <div style="flex: 1; min-width: 250px;">
@@ -144,7 +76,7 @@
 
       <div style="height: 1.5rem;"></div>
 
-      <!-- Controles Principales (Se revelan para el profe al poner la clave) -->
+      <!-- Controles Principales -->
       <div class="controls-grid" id="main-controls">
         
         <!-- SECCIÓN DE VIDEOLLAMADA -->
@@ -156,7 +88,7 @@
             Encender Cámara y Micrófono
           </button>
 
-          <!-- Botones de Silenciar y Apagar Cámara (Aparecen al encender video) -->
+          <!-- Botones de Silenciar y Apagar Cámara -->
           <div class="call-controls" id="call-controls">
             <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 Silenciar Micrófono</button>
             <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 Apagar Cámara</button>
@@ -227,318 +159,11 @@
     </div>
   </section>
 
-  <script>
-    /* 1. CONFIGURACIÓN DE SEGURIDAD Y TRADUCCIONES */
-    const TEACHER_PASSWORD = "viola2026"; 
-    
-    let isStudentAllowed = false; 
+  <footer>
+    <p>&copy; 2026 Díaz-Núñez Music Studio. Todos los derechos reservados.</p>
+  </footer>
 
-    const translations = {
-      es: { nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando cámara del otro participante...", vid_remote: "Remoto" },
-      en: { nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant's camera...", vid_remote: "Remote" }
-    };
-    let currentLang = 'es';
-    function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); updateMediaButtonsText(); }
-    function applyLanguage(lang) { document.documentElement.lang = lang; document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES'; document.querySelectorAll('[data-i18n]').forEach(el => { if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')]; }); }
-
-    /* 2. LÓGICA DE ROLES Y AUTH */
-    let peer = null; let activeConnection = null; let currentRole = 'visitor'; let joinIdFromUrl = null;
-
-    function initSystem() {
-      applyLanguage(currentLang);
-      const urlParams = new URLSearchParams(window.location.search);
-      joinIdFromUrl = urlParams.get('join');
-      
-      if (joinIdFromUrl) {
-        currentRole = 'student';
-        document.getElementById('teacher-login-panel').style.display = 'none';
-        document.getElementById('student-join-panel').style.display = 'block';
-        document.getElementById('main-controls').style.display = 'grid'; // Al alumno se le revelan los controles automáticamente
-        lockStudentInterface(true); 
-        initPeerClient();
-      } else {
-        // Al profe se le pide contraseña, main-controls está oculto
-        document.getElementById('teacher-login-panel').style.display = 'block';
-      }
-    }
-
-    function authenticateTeacher() {
-      const input = document.getElementById('teacher-password').value;
-      if (input === TEACHER_PASSWORD) {
-        currentRole = 'teacher';
-        document.getElementById('teacher-login-panel').style.display = 'none';
-        document.getElementById('teacher-share-box').style.display = 'block';
-        document.getElementById('main-controls').style.display = 'grid'; // Se revelan la cámara y el metrónomo para el profe
-        lockStudentInterface(false); 
-        initPeerTeacher();
-      } else {
-        document.getElementById('login-error').style.display = 'block';
-      }
-    }
-
-    /* 3. PEERJS (WEBRTC) - DATOS Y VIDEOLLAMADA */
-    function setStatus(text, state) { document.getElementById('status-text').innerText = text; document.getElementById('status-dot').className = 'dot ' + state; }
-
-    function initPeerTeacher() {
-      setStatus("Generando sala...", "warning");
-      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
-      peer.on('open', (id) => {
-        document.getElementById('peer-id-label').innerText = id;
-        document.getElementById('student-link-input').value = window.location.href.split('?')[0] + '?join=' + id;
-        setStatus("Esperando al alumno...", "warning");
-      });
-      peer.on('connection', (conn) => { activeConnection = conn; setupConn(conn); });
-      setupCallListener();
-    }
-
-    function initPeerClient() {
-      setStatus("Listo para conectar...", "warning");
-      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
-      peer.on('open', (id) => { document.getElementById('peer-id-label').innerText = "Alumno"; });
-      setupCallListener();
-    }
-
-    function studentJoinClass() {
-      const ctx = getAudioContext();
-      ctx.resume().then(() => {
-        const unlockOsc = ctx.createOscillator(); const unlockGain = ctx.createGain();
-        unlockOsc.connect(unlockGain); unlockGain.connect(ctx.destination); unlockGain.gain.value = 0; 
-        unlockOsc.start(ctx.currentTime); unlockOsc.stop(ctx.currentTime + 0.001);
-
-        document.getElementById('student-join-panel').style.display = 'none';
-        setStatus("Conectando con profesor...", "warning");
-        const conn = peer.connect(joinIdFromUrl);
-        activeConnection = conn; setupConn(conn);
-      });
-    }
-
-    function setupConn(conn) {
-      conn.on('open', () => { 
-        setStatus("Conectado en Vivo", "connected"); 
-        if(currentRole === 'teacher') sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
-        
-        if(localStream && conn.peer) {
-          makeCall(conn.peer);
-        }
-      });
-      conn.on('data', (data) => { handleData(data); });
-      conn.on('close', () => { setStatus(currentRole === 'teacher' ? "Alumno desconectado" : "Profesor desconectado", "error"); });
-    }
-
-    function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
-    function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
-
-    /* LÓGICA DE VIDEOLLAMADA Y BOTONES MUTE/CÁMARA */
-    let localStream = null;
-    let currentCall = null;
-    let pendingCall = null;
-    let isMicOn = true;
-    let isCamOn = true;
-
-    async function startVideo() {
-      const btn = document.getElementById('btn-start-video');
-      btn.disabled = true;
-      btn.innerText = "Accediendo a cámara...";
-
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } 
-        });
-
-        document.getElementById('local-video').srcObject = localStream;
-        document.getElementById('local-placeholder').style.display = 'none';
-        btn.style.display = 'none'; 
-        
-        // Muestra la barra de controles de Mute / Cámara
-        document.getElementById('call-controls').style.display = 'flex';
-
-        if (activeConnection && activeConnection.peer) {
-          makeCall(activeConnection.peer);
-        }
-
-        if (pendingCall) {
-          pendingCall.answer(localStream);
-          setupCallEvents(pendingCall);
-          pendingCall = null;
-        }
-
-      } catch(err) {
-        console.error("Error media:", err);
-        alert("No se pudo acceder a la cámara o micrófono. Revisa los permisos de tu navegador.");
-        btn.disabled = false;
-        btn.innerText = translations[currentLang].btn_start_video;
-      }
-    }
-
-    function toggleMic() {
-      if (!localStream) return;
-      isMicOn = !isMicOn;
-      localStream.getAudioTracks().forEach(track => track.enabled = isMicOn);
-      
-      const btn = document.getElementById('btn-toggle-mic');
-      if (isMicOn) {
-        btn.classList.remove('disabled');
-      } else {
-        btn.classList.add('disabled');
-      }
-      updateMediaButtonsText();
-    }
-
-    function toggleCam() {
-      if (!localStream) return;
-      isCamOn = !isCamOn;
-      localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
-      
-      const btn = document.getElementById('btn-toggle-cam');
-      if (isCamOn) {
-        btn.classList.remove('disabled');
-      } else {
-        btn.classList.add('disabled');
-      }
-      updateMediaButtonsText();
-    }
-
-    function updateMediaButtonsText() {
-      const micBtn = document.getElementById('btn-toggle-mic');
-      const camBtn = document.getElementById('btn-toggle-cam');
-      
-      if (currentLang === 'es') {
-        micBtn.innerText = isMicOn ? "🎤 Silenciar Micrófono" : "🎤 Activar Audio";
-        camBtn.innerText = isCamOn ? "📷 Apagar Cámara" : "📷 Encender Cámara";
-      } else {
-        micBtn.innerText = isMicOn ? "🎤 Mute Mic" : "🎤 Unmute";
-        camBtn.innerText = isCamOn ? "📷 Turn Off Cam" : "📷 Turn On Cam";
-      }
-    }
-
-    function makeCall(remoteId) {
-      if (!localStream) return;
-      currentCall = peer.call(remoteId, localStream);
-      setupCallEvents(currentCall);
-    }
-
-    function setupCallListener() {
-      peer.on('call', (call) => {
-        if (localStream) {
-          call.answer(localStream);
-          setupCallEvents(call);
-        } else {
-          pendingCall = call;
-          const btn = document.getElementById('btn-start-video');
-          btn.innerText = "Contestar Videollamada (Requiere Cámara)";
-          btn.style.background = "var(--success)";
-          btn.style.borderColor = "var(--success)";
-        }
-      });
-    }
-
-    function setupCallEvents(call) {
-      call.on('stream', (remoteStream) => {
-        document.getElementById('remote-video').srcObject = remoteStream;
-        document.getElementById('remote-placeholder').style.display = 'none';
-      });
-      call.on('close', () => {
-        document.getElementById('remote-video').srcObject = null;
-        document.getElementById('remote-placeholder').style.display = 'flex';
-      });
-    }
-
-    /* 4. BLOQUEOS Y PERMISOS BIDIRECCIONALES */
-    function toggleStudentPermissions() {
-      isStudentAllowed = !isStudentAllowed;
-      const btn = document.getElementById('btn-toggle-student-auth');
-      if (isStudentAllowed) {
-        btn.innerText = "🔓 Alumno Desbloqueado (Clic para bloquear)";
-        btn.style.color = "var(--success)"; btn.style.borderColor = "var(--success)";
-      } else {
-        btn.innerText = "🔒 Alumno Bloqueado (Clic para permitir control)";
-        btn.style.color = "var(--warning)"; btn.style.borderColor = "var(--warning)";
-      }
-      sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
-    }
-
-    function lockStudentInterface(lock) {
-      document.getElementById('lock-metro').style.display = lock ? 'block' : 'none';
-      document.getElementById('lock-drone').style.display = lock ? 'block' : 'none';
-    }
-
-    /* 5. AUDIO (METRÓNOMO Y AFINADOR) */
-    let audioCtx = null; let isPlaying = false; let bpm = 100; let beatsPerBar = 4; let currentBeat = 0; let nextNoteTime = 0.0; let timerID = null;
-    function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
-    
-    function scheduleNote(beatNumber, time) {
-      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.frequency.value = (beatNumber === 0) ? 1000 : 650;
-      gain.gain.setValueAtTime(beatNumber === 0 ? 0.8 : 0.4, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
-      osc.start(time); osc.stop(time + 0.04);
-    }
-    
-    function scheduler() {
-      while (nextNoteTime < audioCtx.currentTime + 0.1) {
-        scheduleNote(currentBeat, nextNoteTime); nextNoteTime += (60.0 / bpm); currentBeat = (currentBeat + 1) % beatsPerBar;
-      }
-      timerID = setTimeout(scheduler, 25);
-    }
-
-    function toggleMetronome(broadcast = true) {
-      getAudioContext();
-      if (isPlaying) {
-        isPlaying = false; clearTimeout(timerID);
-        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro; document.getElementById('btn-play-metro').classList.remove('active');
-        if (broadcast) sendPeerMessage({ type: 'METRO_STOP' });
-      } else {
-        isPlaying = true; currentBeat = 0; nextNoteTime = audioCtx.currentTime; scheduler();
-        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro; document.getElementById('btn-play-metro').classList.add('active');
-        if (broadcast) sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
-      }
-    }
-
-    function onTempoChange(val, broadcast = true) {
-      bpm = parseInt(val); document.getElementById('bpm-display').innerText = bpm; document.getElementById('tempo-slider').value = bpm;
-      if (broadcast) sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
-    }
-
-    function setTimeSignature(sig, broadcast = true) {
-      beatsPerBar = sig; currentBeat = 0;
-      document.querySelectorAll('.ts-btn').forEach(b => b.classList.remove('active')); document.getElementById('ts-' + sig).classList.add('active');
-      if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
-    }
-
-    let droneOsc = null; let droneGain = null;
-    function toggleDrone(freq, noteName, broadcast = true) {
-      getAudioContext(); stopDrone(false);
-      droneOsc = audioCtx.createOscillator(); droneGain = audioCtx.createGain();
-      droneOsc.type = 'sine'; droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime); droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
-      droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination); droneOsc.start();
-      document.getElementById('drone-' + noteName).classList.add('playing');
-      if (broadcast) sendPeerMessage({ type: 'DRONE_START', freq, noteName });
-    }
-
-    function stopDrone(broadcast = true) {
-      if (droneGain) droneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-      setTimeout(() => { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); droneOsc = null; } }, 50);
-      document.querySelectorAll('.drone-btn').forEach(b => b.classList.remove('playing'));
-      if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
-    }
-
-    /* 6. MANEJO DE MENSAJES RECIBIDOS (BIDIRECCIONAL) */
-    function handleData(data) {
-      if (data.type === 'PERMISSIONS') {
-        if(currentRole === 'student') lockStudentInterface(!data.allowed);
-      }
-      else if (data.type === 'METRO_START') { bpm = data.bpm; beatsPerBar = data.beatsPerBar; onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); if(!isPlaying) toggleMetronome(false); }
-      else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
-      else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
-      else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
-      else if (data.type === 'DRONE_START') { toggleDrone(data.freq, data.noteName, false); }
-      else if (data.type === 'DRONE_STOP') { stopDrone(false); }
-    }
-
-    window.addEventListener('load', initSystem);
-  </script>
+  <!-- Enlace al archivo de lógica -->
+  <script src="app.js"></script>
 </body>
 </html>
