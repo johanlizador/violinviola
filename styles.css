@@ -496,3 +496,26 @@ footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-a
 .switch input:focus-visible + .switch-track { box-shadow: 0 0 0 3px rgba(229, 169, 60, 0.3); }
 .switch-text { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); transition: color 0.18s; }
 .switch input:checked ~ .switch-text { color: var(--text-main); }
+
+
+/* ======== PANTALLA COMPLETA SIMULADA (iPhone) ======== */
+/* Safari en iPhone no permite requestFullscreen sobre un div, así que ocupamos
+   el viewport a mano. dvh evita que la barra del navegador corte el vídeo. */
+#video-conference-container.faux-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 3000;
+  border: none;
+  border-radius: 0;
+  background: #000;
+  margin: 0;
+}
+.faux-fullscreen .video-grid-layout { flex: 1 1 auto; height: auto; min-height: 0; }
+.faux-fullscreen .call-controls-bar {
+  flex: 0 0 auto;
+  padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
+}
+body.fs-lock { overflow: hidden; }
