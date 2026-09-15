@@ -13,7 +13,7 @@ const translations = {
     perm_desktop: "Pulsa el candado (o el icono de cámara) a la izquierda de la dirección web, pon Cámara y Micrófono en «Permitir», y recarga la página.",
     perm_ios: "Abre Ajustes › Safari › Cámara y Micrófono y elige «Preguntar» o «Permitir». Después vuelve aquí y recarga la página.",
     perm_none: "No se detectó ninguna cámara o micrófono conectado.",
-    perm_busy: "Otra aplicación está usando la cámara. Cierra Zoom, Meet o cualquier otra videollamada y vuelve a intentarlo.", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
+    perm_busy: "Otra aplicación está usando la cámara. Cierra Zoom, Meet o cualquier otra videollamada y vuelve a intentarlo.", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote_off: "Cámara apagada", vid_remote: "Remoto", 
     btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
@@ -22,7 +22,16 @@ const translations = {
     lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
-    nav_teachers: "Faculty", nav_studio: "Live Classroom", nav_request: "Request a lesson", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
+    nav_teachers: "Faculty", nav_studio: "Live Classroom", nav_request: "Request a lesson", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", share_hint: "Link for your student:", join_title: "Welcome to class", join_btn: "Enter the class",
+    join_headphones: "🎧 Put your headphones on before entering. Without them the metronome leaks into your microphone and echoes.",
+    join_name_label: "What's your name?", join_need_name: "Enter your name so your teacher knows who's joining.",
+    join_preview_hint: "You'll see yourself here", join_test: "Test camera and microphone",
+    join_framing: "Position the camera so the bow and the left hand are visible, not just your face.",
+    perm_title: "Your browser blocked the camera or microphone.",
+    perm_desktop: "Click the padlock (or camera icon) to the left of the web address, set Camera and Microphone to Allow, and reload the page.",
+    perm_ios: "Open Settings > Safari > Camera and Microphone and choose Ask or Allow. Then come back here and reload.",
+    perm_none: "No camera or microphone was detected.",
+    perm_busy: "Another app is using the camera. Close Zoom, Meet or any other video call and try again.", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote_off: "Camera off", vid_remote: "Remote",
     btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View",
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
     student_hint: "Are you a student? You need the link your teacher sends you.",
@@ -490,14 +499,67 @@ function setLocalPlaceholder(visible) {
   if (ph) ph.style.display = visible ? 'flex' : 'none';
 }
 
-function toggleCam() {
+/* Apagar la cámara de verdad.
+   track.enabled = false sólo deja de enviar fotogramas: el dispositivo sigue
+   abierto y el LED del portátil sigue encendido, que es exactamente lo que no
+   quieres cuando le dices a un alumno que apagaste la cámara. Hay que llamar a
+   track.stop() para soltar el hardware, y al reencender pedir una pista nueva
+   y cambiarla en caliente con replaceTrack(), sin renegociar la llamada. */
+
+function videoSender() {
+  const pc = currentCall && currentCall.peerConnection;
+  if (!pc) return null;
+  return pc.getSenders().find(s => s.track && s.track.kind === 'video')
+      || pc.getSenders().find(s => !s.track);   // hueco libre tras apagarla
+}
+
+async function toggleCam() {
   if (!localStream) return;
-  isCamOn = !isCamOn;
-  localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
-  document.getElementById('btn-toggle-cam').classList.toggle('disabled', !isCamOn);
+  const btn = document.getElementById('btn-toggle-cam');
+  btn.disabled = true;
+
+  try {
+    if (isCamOn) {
+      // ---- Apagar: soltar el hardware ----
+      const sender = videoSender();
+      if (sender) await sender.replaceTrack(null);      // el otro lado ve congelado/negro
+      localStream.getVideoTracks().forEach(track => {
+        track.stop();                                   // aquí se apaga el LED
+        localStream.removeTrack(track);
+      });
+      document.getElementById('local-video').srcObject = localStream;
+      isCamOn = false;
+      sendPeerMessage({ type: 'CAM_STATE', on: false });
+
+    } else {
+      // ---- Encender: pista nueva, sin renegociar ----
+      const fresca = await navigator.mediaDevices.getUserMedia({ video: true });
+      const pista = fresca.getVideoTracks()[0];
+      localStream.addTrack(pista);
+      document.getElementById('local-video').srcObject = localStream;
+
+      const sender = videoSender();
+      if (sender) await sender.replaceTrack(pista);
+      isCamOn = true;
+      sendPeerMessage({ type: 'CAM_STATE', on: true });
+    }
+  } catch (err) {
+    console.error('[aula] no se pudo cambiar la cámara:', err);
+    showPermissionHelp(err);
+  }
+
+  btn.disabled = false;
+  btn.classList.toggle('disabled', !isCamOn);
   setLocalPlaceholder(!isCamOn);
   updateMediaButtonsText();
 }
+
+/* Al salir del aula hay que soltar cámara y micrófono igualmente */
+function releaseMedia() {
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+}
+window.addEventListener('pagehide', releaseMedia);
 
 function toggleViewLayout() {
   const container = document.getElementById('video-conference-container');
@@ -1014,6 +1076,13 @@ function handleData(data) {
   else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
   else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
   else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
+  else if (data.type === 'CAM_STATE') {
+    const ph = document.getElementById('remote-placeholder');
+    if (ph) {
+      ph.style.display = data.on ? 'none' : 'flex';
+      ph.innerText = translations[currentLang][data.on ? 'vid_remote_wait' : 'vid_remote_off'];
+    }
+  }
   else if (data.type === 'HELLO') {
     const etiqueta = document.getElementById('remote-label');
     if (etiqueta) { etiqueta.innerText = data.name; etiqueta.removeAttribute('data-i18n'); }
