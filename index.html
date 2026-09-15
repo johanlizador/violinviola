@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Díaz-Núñez Music Studio | Strings Academy & Live Classroom</title>
-  <!-- PeerJS para comunicación WebRTC P2P en tiempo real sin backend -->
+  <!-- PeerJS para comunicación WebRTC P2P en tiempo real -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root {
@@ -18,706 +18,340 @@
       --text-muted: #8b949e;
       --success: #2ea043;
       --danger: #da3633;
+      --warning: #d29922;
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      font-family: var(--font-family);
-      line-height: 1.6;
-      scroll-behavior: smooth;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-family); line-height: 1.6; scroll-behavior: smooth; }
 
     /* Navegación */
-    header {
-      position: sticky;
-      top: 0;
-      background: rgba(13, 17, 23, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--border-color);
-      z-index: 1000;
-      padding: 0.8rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    header { position: sticky; top: 0; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; letter-spacing: 0.5px; }
+    nav { display: flex; align-items: center; gap: 1.2rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; transition: color 0.2s ease; }
+    nav a:hover { color: var(--text-main); }
+    .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; }
+    .lang-btn:hover { background: var(--border-color); color: var(--accent-gold-hover); }
 
-    .brand {
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--accent-gold);
-      text-decoration: none;
-      letter-spacing: 0.5px;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-    }
-
-    nav a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.95rem;
-      transition: color 0.2s ease;
-    }
-
-    nav a:hover {
-      color: var(--text-main);
-    }
-
-    .lang-btn {
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--accent-gold);
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: all 0.2s ease;
-    }
-
-    .lang-btn:hover {
-      background: var(--border-color);
-      color: var(--accent-gold-hover);
-    }
-
-    /* Layout y Secciones */
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2.5rem 1.2rem;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 4rem 1rem 3rem 1rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .hero h1 {
-      font-size: 2.6rem;
-      margin-bottom: 1rem;
-      color: #fff;
-    }
-
-    .hero p {
-      color: var(--text-muted);
-      max-width: 700px;
-      margin: 0 auto 2rem auto;
-      font-size: 1.15rem;
-    }
-
-    .btn-cta {
-      display: inline-block;
-      background: var(--accent-gold);
-      color: #000;
-      padding: 0.75rem 1.8rem;
-      border-radius: 8px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: transform 0.15s ease, background-color 0.2s ease;
-    }
-
-    .btn-cta:hover {
-      background: var(--accent-gold-hover);
-      transform: translateY(-2px);
-    }
-
-    .section-title {
-      font-size: 2rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      color: var(--accent-gold);
-    }
-
-    /* Biografías */
-    .teachers-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-
-    @media (max-width: 800px) {
-      .teachers-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .teacher-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.8rem;
-      transition: border-color 0.2s ease;
-    }
-
-    .teacher-card:hover {
-      border-color: var(--accent-gold);
-    }
-
-    .teacher-card h3 {
-      font-size: 1.5rem;
-      color: #fff;
-      margin-bottom: 0.3rem;
-    }
-
-    .teacher-card .tagline {
-      color: var(--accent-gold);
-      font-size: 0.9rem;
-      margin-bottom: 1.2rem;
-      font-weight: 600;
-    }
-
-    .teacher-card p {
-      color: #c9d1d9;
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      text-align: justify;
-    }
-
-    .links-list {
-      margin-top: 1.2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border-color);
-      font-size: 0.85rem;
-    }
-
-    .links-list a {
-      color: var(--accent-gold);
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 12px;
-      margin-top: 4px;
-    }
-
-    .links-list a:hover {
-      text-decoration: underline;
-    }
+    /* Layout general */
+    .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.2rem; }
+    .hero { text-align: center; padding: 4rem 1rem 3rem 1rem; border-bottom: 1px solid var(--border-color); }
+    .hero h1 { font-size: 2.6rem; margin-bottom: 1rem; color: #fff; }
+    .hero p { color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem auto; font-size: 1.15rem; }
+    .btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: transform 0.15s ease, background-color 0.2s ease; }
+    .btn-cta:hover { background: var(--accent-gold-hover); transform: translateY(-2px); }
+    .section-title { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent-gold); }
 
     /* Aula Virtual / Remote Studio */
-    .studio-box {
-      background: var(--bg-card);
-      border: 2px solid var(--accent-gold);
-      border-radius: 14px;
-      padding: 2rem;
-      margin: 3rem 0;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
+    .studio-box { background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: 14px; padding: 2rem; margin: 3rem 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+    .studio-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; background: #21262d; border: 1px solid var(--border-color); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 5px rgba(255,255,255,0.2); }
+    .dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 
-    .studio-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 1rem;
-      margin-bottom: 1.5rem;
-    }
+    .role-selection { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .role-btn { flex: 1; padding: 0.8rem; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
+    .role-btn.active { border-color: var(--accent-gold); background: var(--accent-gold); color: #000; }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: #21262d;
-    }
+    #student-join-panel { display: none; text-align: center; padding: 2rem; border: 1px solid var(--accent-gold); border-radius: 8px; margin-bottom: 1.5rem; background: rgba(229, 169, 60, 0.05); }
 
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--text-muted);
-    }
+    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; transition: opacity 0.3s ease; }
+    @media (max-width: 700px) { .controls-grid { grid-template-columns: 1fr; } }
+    .card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; }
+    .card-inner h4 { margin-bottom: 1rem; color: var(--accent-gold); font-size: 1.1rem; }
+    
+    .tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
+    input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
+    
+    .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.15s ease; }
+    .tool-btn:hover { background: var(--bg-card-hover); }
+    .tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
+    .tool-btn.primary:hover { background: var(--accent-gold-hover); }
+    .tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
 
-    .dot.connected {
-      background: var(--success);
-    }
+    .drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
+    .drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+    .drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
 
-    .role-selection {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
+    .share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
 
-    .role-btn {
-      flex: 1;
-      padding: 0.8rem;
-      border: 1px solid var(--border-color);
-      background: var(--bg-main);
-      color: var(--text-main);
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
+    /* Biografías */
+    .teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+    @media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
+    .teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; transition: border-color 0.2s ease; }
+    .teacher-card:hover { border-color: var(--accent-gold); }
+    .teacher-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
+    .teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
+    .teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
+    .links-list { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; }
+    .links-list a { color: var(--accent-gold); text-decoration: none; display: inline-block; margin-right: 12px; margin-top: 4px; }
+    .links-list a:hover { text-decoration: underline; }
 
-    .role-btn.active {
-      border-color: var(--accent-gold);
-      background: var(--accent-gold);
-      color: #000;
-    }
-
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 700px) {
-      .controls-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .card-inner {
-      background: var(--bg-main);
-      border: 1px solid var(--border-color);
-      padding: 1.4rem;
-      border-radius: 10px;
-    }
-
-    .card-inner h4 {
-      margin-bottom: 1rem;
-      color: var(--accent-gold);
-      font-size: 1.1rem;
-    }
-
-    .tempo-display {
-      font-size: 3rem;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 0.5rem;
-      color: #fff;
-    }
-
-    .slider-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      margin-bottom: 1.2rem;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent-gold);
-      cursor: pointer;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .tool-btn {
-      flex: 1;
-      padding: 0.6rem 1rem;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-card);
-      color: var(--text-main);
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: background 0.15s ease;
-    }
-
-    .tool-btn:hover {
-      background: var(--bg-card-hover);
-    }
-
-    .tool-btn.primary {
-      background: var(--accent-gold);
-      color: #000;
-      border: none;
-    }
-
-    .tool-btn.primary:hover {
-      background: var(--accent-gold-hover);
-    }
-
-    .drone-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.4rem;
-      margin-bottom: 1rem;
-    }
-
-    .drone-btn {
-      padding: 0.6rem 0.2rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .drone-btn.playing {
-      background: var(--accent-gold);
-      color: #000;
-      border-color: var(--accent-gold);
-    }
-
-    /* Enlace de compartir */
-    .share-container {
-      margin-top: 1rem;
-      background: #090d12;
-      border: 1px dashed var(--border-color);
-      padding: 0.8rem;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .share-container input {
-      background: transparent;
-      border: none;
-      color: var(--accent-gold);
-      width: 100%;
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    footer {
-      border-top: 1px solid var(--border-color);
-      padding: 2.5rem 1rem;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
+    footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
-  <!-- Navegación -->
   <header>
     <a href="#" class="brand">Díaz-Núñez Studio</a>
     <nav>
       <a href="#teachers" data-i18n="nav_teachers">Profesores</a>
       <a href="#studio" data-i18n="nav_studio">Aula Remota</a>
-      <a href="#contact" data-i18n="nav_contact">Contacto</a>
       <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN / ES</button>
     </nav>
   </header>
 
-  <!-- Hero Section -->
   <section class="hero">
     <div class="container">
       <h1 data-i18n="hero_title">Excelencia e Innovación en Cuerdas</h1>
-      <p data-i18n="hero_subtitle">
-        Clases privadas y magistrales de Violín y Viola. Respaldados por formación internacional, experiencia orquestal de primer nivel y un aula virtual con herramientas acústicas sincronizadas en tiempo real.
-      </p>
+      <p data-i18n="hero_subtitle">Clases privadas de Violín y Viola. Respaldados por formación internacional y un aula virtual con herramientas acústicas sincronizadas en tiempo real.</p>
       <a href="#studio" class="btn-cta" data-i18n="hero_cta">Entrar al Aula Remota</a>
     </div>
   </section>
 
-  <!-- Aula Virtual / Remote Classroom -->
   <section id="studio" class="container">
     <h2 class="section-title" data-i18n="studio_title">Aula de Práctica Sincronizada</h2>
     <div class="studio-box">
+      
       <div class="studio-header">
-        <div>
-          <span class="status-badge">
-            <span class="dot" id="status-dot"></span>
-            <span id="status-text" data-i18n="status_standalone">Modo Local (Sin conectar)</span>
-          </span>
-        </div>
-        <div id="room-info" style="font-size: 0.85rem; color: var(--text-muted);">
-          ID de Sesión: <strong id="peer-id-label" style="color: var(--text-main);">Iniciando...</strong>
+        <span class="status-badge">
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text">Iniciando sistema...</span>
+        </span>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          ID de Sesión: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
         </div>
       </div>
 
-      <!-- Selección de Rol -->
       <div class="role-selection">
-        <button class="role-btn active" id="btn-role-teacher" onclick="setRole('teacher')">
-          <span data-i18n="role_teacher">Panel del Profesor (Control)</span>
-        </button>
-        <button class="role-btn" id="btn-role-student" onclick="setRole('student')">
-          <span data-i18n="role_student">Vista del Alumno (Receptor)</span>
-        </button>
+        <button class="role-btn active" id="btn-role-teacher" onclick="setRole('teacher')" data-i18n="role_teacher">Panel del Profesor</button>
+        <button class="role-btn" id="btn-role-student" onclick="setRole('student')" data-i18n="role_student">Vista del Alumno</button>
       </div>
 
-      <!-- Enlace para compartir (visible para el profesor) -->
       <div id="teacher-share-box">
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">
-          Envía este enlace directo a tu alumno para sincronizar el sonido en su pantalla:
-        </p>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Envía este enlace directo a tu alumno para sincronizar la clase:</p>
         <div class="share-container">
           <input type="text" id="student-link-input" readonly value="Generando enlace..." />
-          <button class="tool-btn" style="flex: 0 0 auto; font-size: 0.8rem;" onclick="copyStudentLink()" data-i18n="btn_copy">Copiar</button>
+          <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink()" data-i18n="btn_copy">Copiar</button>
         </div>
+      </div>
+
+      <!-- Panel especial para que el alumno active su audio -->
+      <div id="student-join-panel">
+        <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem;" data-i18n="join_title">¡Bienvenido a la clase!</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic en el botón para activar el sonido de tu navegador y conectar con tu profesor.</p>
+        <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
       </div>
 
       <div style="height: 1.5rem;"></div>
 
-      <!-- Controles: Metrónomo, Drones y Pistas -->
-      <div class="controls-grid">
+      <div class="controls-grid" id="main-controls">
         
-        <!-- Metrónomo de Precisión -->
         <div class="card-inner">
-          <h4 data-i18n="metronome_heading">Metrónomo de Alta Precisión</h4>
+          <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
           <div class="tempo-display" id="bpm-display">100</div>
-          <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;">BPM</div>
           
-          <div class="slider-group">
-            <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
-          </div>
+          <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
 
           <div style="margin-bottom: 1rem;">
             <label style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="time_sig">Compás:</label>
             <div class="btn-group" style="margin-top: 0.3rem;">
-              <button class="tool-btn" onclick="setTimeSignature(2)">2/4</button>
-              <button class="tool-btn" onclick="setTimeSignature(3)">3/4</button>
-              <button class="tool-btn" onclick="setTimeSignature(4)">4/4</button>
-              <button class="tool-btn" onclick="setTimeSignature(6)">6/8</button>
+              <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
+              <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
+              <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
+              <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
             </div>
           </div>
 
-          <div class="btn-group">
-            <button class="tool-btn primary" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar</button>
-          </div>
+          <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
         </div>
 
-        <!-- Drones de Afinación y Audios -->
         <div class="card-inner">
-          <h4 data-i18n="drone_heading">Drones de Afinación (Quintas Justas)</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;" data-i18n="drone_desc">
-            Sonido continuo para práctica de afinación de cuerda y escalas:
-          </p>
+          <h4 data-i18n="drone_heading">Drones de Afinación</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;" data-i18n="drone_desc">Sonido continuo para práctica (Quintas Justas):</p>
           <div class="drone-grid">
-            <button class="drone-btn" onclick="playDroneNote(130.81, 'C3')">DO (C)</button>
-            <button class="drone-btn" onclick="playDroneNote(196.00, 'G3')">SOL (G)</button>
-            <button class="drone-btn" onclick="playDroneNote(293.66, 'D4')">RE (D)</button>
-            <button class="drone-btn" onclick="playDroneNote(440.00, 'A4')">LA (A)</button>
-            <button class="drone-btn" onclick="playDroneNote(659.25, 'E5')">MI (E)</button>
+            <button class="drone-btn" id="drone-C" onclick="toggleDrone(130.81, 'C')">DO</button>
+            <button class="drone-btn" id="drone-G" onclick="toggleDrone(196.00, 'G')">SOL</button>
+            <button class="drone-btn" id="drone-D" onclick="toggleDrone(293.66, 'D')">RE</button>
+            <button class="drone-btn" id="drone-A" onclick="toggleDrone(440.00, 'A')">LA</button>
+            <button class="drone-btn" id="drone-E" onclick="toggleDrone(659.25, 'E')">MI</button>
           </div>
           <button class="tool-btn" style="width: 100%; margin-bottom: 1.5rem;" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
-
-          <h4 data-i18n="audio_heading">Reproductor de Ejemplos / Pistas</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;" data-i18n="audio_desc">
-            Carga un archivo de audio local (MP3/WAV) en tu navegador para reproducirlo de forma simultánea:
-          </p>
-          <input type="file" id="audio-file-input" accept="audio/*" style="font-size: 0.85rem; color: var(--text-muted); width: 100%; margin-bottom: 0.8rem;" onchange="loadCustomAudio(this)" />
-          <audio id="remote-audio-player" controls style="width: 100%; display: none;"></audio>
         </div>
 
       </div>
     </div>
   </section>
 
-  <!-- Profesores / Faculty -->
+  <!-- Profesores -->
   <section id="teachers" class="container">
     <h2 class="section-title" data-i18n="faculty_title">Nuestros Profesores</h2>
     <div class="teachers-grid">
-      
-      <!-- Card Abril Nuñez -->
+      <!-- Abril -->
       <div class="teacher-card">
         <h3>Abril C. Núñez</h3>
-        <div class="tagline" data-i18n="abril_tagline">Violinista | Master of Music (Duquesne University) | Pedagoga Suzuki</div>
-        <p data-i18n="abril_bio_1">
-          Abril C. Núñez cuenta con una destacada carrera internacional en presentaciones orquestales, música de cámara y docencia. Obtuvo su Maestría en Interpretación en Duquesne University (Pittsburgh) y su Licenciatura en UNEARTE (Venezuela).
-        </p>
-        <p data-i18n="abril_bio_2">
-          Actualmente es miembro titular de la sección de violines de Canton Symphony Orchestra y participa regularmente con la orquesta de la Pittsburgh Opera, Pittsburgh Ballet Theatre, Westmoreland Symphony, Wheeling Symphony y Erie Philharmonic. Participó en giras mundiales por más de 15 países en Asia y Europa con el Peace Boat y ha colaborado en concierto con Andrea Bocelli.
-        </p>
-        <p data-i18n="abril_bio_3">
-          Certificada en Filosofía Suzuki y con más de 15 años de experiencia pedagógica en Sudamérica y Estados Unidos (Brighton Music Center, Young Artist Debut Orchestra), guía a alumnos desde nivel principiante hasta avanzado combinando disciplina artística y bienestar emocional.
-        </p>
-        <div class="links-list">
-          <strong style="color: #fff;" data-i18n="press_links">Prensa y Producciones:</strong><br />
-          <a href="https://entertainmentcentralpittsburgh.com/center-stage/the-flying-dutchman-review/" target="_blank" rel="noopener">Pittsburgh Opera (Wagner)</a>
-          <a href="https://onstagepittsburgh.com/2024/03/17/pittsburgh-operas-la-traviata-another-win-for-the-company/" target="_blank" rel="noopener">La Traviata</a>
-          <a href="https://entertainmentcentralpittsburgh.com/center-stage/light-lively-pittsburgh-operas-la-boheme-has-no-match/" target="_blank" rel="noopener">La Bohème</a>
-        </div>
+        <div class="tagline" data-i18n="abril_tagline">Violinista | Master of Music (Duquesne University)</div>
+        <p data-i18n="abril_bio_1">Violinista y educadora con amplia trayectoria internacional. Obtuvo su Maestría en Duquesne University y su Licenciatura en UNEARTE.</p>
+        <p data-i18n="abril_bio_2">Miembro de la sección de violines de Canton Symphony Orchestra, colabora regularmente con Pittsburgh Opera, Wheeling Symphony y Erie Philharmonic. Participó en giras mundiales con el Peace Boat y ha colaborado con Andrea Bocelli.</p>
       </div>
-
-      <!-- Card Johann David Diaz Ramirez -->
+      <!-- Johann -->
       <div class="teacher-card">
         <h3>Johann David Díaz Ramírez</h3>
-        <div class="tagline" data-i18n="johann_tagline">Violista y Violinista | Master of Music (Duquesne Univ.) | LRSM Distinction</div>
-        <p data-i18n="johann_bio_1">
-          Johann David Díaz Ramírez es un virtuoso violista y pedagogo formado en el prestigioso Mozarteum de Caracas, con Maestría en Duquesne University y Licenciatura de la Royal Schools of Music del Reino Unido (LRSM) con Distinción.
-        </p>
-        <p data-i18n="johann_bio_2">
-          Se desempeña como músico de la Pittsburgh Opera Orchestra, Youngstown Symphony Orchestra y Johnstown Symphony Orchestra, además de colaborar como invitado en formaciones como Erie Philharmonic, Wheeling Symphony y Canton Symphony. Su repertorio como solista incluye obras cumbres como los conciertos de Bartók, Walton y Don Quijote de Richard Strauss.
-        </p>
-        <p data-i18n="johann_bio_3">
-          Cuenta con una extensa labor pedagógica en Johnstonbaugh's Music Centers y orquestas juveniles internacionales. Su metodología combina bases mecánicas ergonómicas para evitar tensiones, afinación pura por armónicos y el aprovechamiento de recursos tecnológicos interactivos.
-        </p>
-        <div class="links-list">
-          <strong style="color: #fff;" data-i18n="listen_recordings">Grabaciones y Actuaciones:</strong><br />
-          <a href="https://www.youtube.com/watch?v=lPSjG7u92cE" target="_blank" rel="noopener">Paganini - Gran Viola</a>
-          <a href="https://www.youtube.com/watch?v=NItqk-uB410" target="_blank" rel="noopener">Béla Bartók Viola Concerto</a>
-          <a href="https://confirmado.com.ve/la-orquesta-sinfonica-municipal-de-caracas-presenta-don-quijote/" target="_blank" rel="noopener">Don Quijote (Prensa)</a>
-        </div>
+        <div class="tagline" data-i18n="johann_tagline">Violista y Violinista | Master of Music | LRSM Distinction</div>
+        <p data-i18n="johann_bio_1">Virtuoso violista formado en el Mozarteum de Caracas. Posee Maestría por Duquesne University y Licenciatura de la Royal Schools of Music (UK).</p>
+        <p data-i18n="johann_bio_2">Músico de la Pittsburgh Opera Orchestra, Youngstown Symphony y Johnstown Symphony. Su repertorio como solista incluye conciertos de Bartók, Walton y Don Quijote de Richard Strauss.</p>
       </div>
-
     </div>
-  </section>
-
-  <!-- Contacto / Booking -->
-  <section id="contact" class="container" style="text-align: center; border-top: 1px solid var(--border-color); margin-top: 3rem; padding-top: 3rem;">
-    <h2 class="section-title" data-i18n="contact_title">Comienza tus Clases</h2>
-    <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem auto;" data-i18n="contact_subtitle">
-      Disponibilidad de lecciones presenciales en el área de Pittsburgh / Tri-State y clases virtuales a nivel internacional.
-    </p>
-    <a href="mailto:johannviolista@hotmail.com?subject=Consulta%20Clases%20de%20Musica" class="btn-cta" data-i18n="contact_btn">Contactar para Audición o Clase</a>
   </section>
 
   <footer>
     <p>&copy; 2026 Díaz-Núñez Music Studio. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
   </footer>
 
-  <!-- Diccionario y Lógica Bilingüe + WebRTC + Web Audio API -->
   <script>
-    /* ==========================================================================
-       1. INTERNACIONALIZACIÓN (i18n) BILINGÜE CON DETECCIÓN AUTOMÁTICA
-       ========================================================================== */
+    /* 1. DICCIONARIO Y TRADUCCIÓN */
     const translations = {
       es: {
-        nav_teachers: "Profesores",
-        nav_studio: "Aula Remota",
-        nav_contact: "Contacto",
-        hero_title: "Excelencia e Innovación en Cuerdas",
-        hero_subtitle: "Clases privadas y magistrales de Violín y Viola. Respaldados por formación internacional, experiencia orquestal de primer nivel y un aula virtual con herramientas acústicas sincronizadas en tiempo real.",
-        hero_cta: "Entrar al Aula Remota",
-        studio_title: "Aula de Práctica Sincronizada",
-        status_standalone: "Modo Local (Sin conectar)",
-        status_connected: "Conectado en Vivo",
-        role_teacher: "Panel del Profesor (Control)",
-        role_student: "Vista del Alumno (Receptor)",
-        share_hint: "Envía este enlace directo a tu alumno para sincronizar el sonido en su pantalla:",
-        btn_copy: "Copiar",
-        copied: "¡Copiado!",
-        metronome_heading: "Metrónomo de Alta Precisión",
-        time_sig: "Compás:",
-        btn_start_metro: "Iniciar",
-        btn_stop_metro: "Detener",
-        drone_heading: "Drones de Afinación (Quintas Justas)",
-        drone_desc: "Sonido continuo para práctica de afinación de cuerda y escalas:",
-        btn_stop_drone: "Detener Afinador",
-        audio_heading: "Reproductor de Ejemplos / Pistas",
-        audio_desc: "Carga un archivo de audio local (MP3/WAV) en tu navegador para reproducirlo de forma simultánea:",
-        faculty_title: "Nuestros Profesores",
-        abril_tagline: "Violinista | Master of Music (Duquesne University) | Pedagoga Suzuki",
-        abril_bio_1: "Abril C. Núñez cuenta con una destacada carrera internacional en presentaciones orquestales, música de cámara y docencia. Obtuvo su Maestría en Interpretación en Duquesne University (Pittsburgh) y su Licenciatura en UNEARTE (Venezuela).",
-        abril_bio_2: "Actualmente es miembro titular de la sección de violines de Canton Symphony Orchestra y participa regularmente con la orquesta de la Pittsburgh Opera, Pittsburgh Ballet Theatre, Westmoreland Symphony, Wheeling Symphony y Erie Philharmonic. Participó en giras mundiales por más de 15 países en Asia y Europa con el Peace Boat y ha colaborado en concierto con Andrea Bocelli.",
-        abril_bio_3: "Certificada en Filosofía Suzuki y con más de 15 años de experiencia pedagógica en Sudamérica y Estados Unidos (Brighton Music Center, Young Artist Debut Orchestra), guía a alumnos desde nivel principiante hasta avanzado combinando disciplina artística y bienestar emocional.",
-        johann_tagline: "Violista y Violinista | Master of Music (Duquesne Univ.) | LRSM Distinction",
-        johann_bio_1: "Johann David Díaz Ramírez es un virtuoso violista y pedagogo formado en el prestigioso Mozarteum de Caracas, con Maestría en Duquesne University y Licenciatura de la Royal Schools of Music del Reino Unido (LRSM) con Distinción.",
-        johann_bio_2: "Se desempeña como músico de la Pittsburgh Opera Orchestra, Youngstown Symphony Orchestra y Johnstown Symphony Orchestra, además de colaborar como invitado en formaciones como Erie Philharmonic, Wheeling Symphony y Canton Symphony. Su repertorio como solista incluye obras cumbres como los conciertos de Bartók, Walton y Don Quijote de Richard Strauss.",
-        johann_bio_3: "Cuenta con una extensa labor pedagógica en Johnstonbaugh's Music Centers y orquestas juveniles internacionales. Su metodología combina bases mecánicas ergonómicas para evitar tensiones, afinación pura por armónicos y el aprovechamiento de recursos tecnológicos interactivos.",
-        press_links: "Prensa y Producciones:",
-        listen_recordings: "Grabaciones y Actuaciones:",
-        contact_title: "Comienza tus Clases",
-        contact_subtitle: "Disponibilidad de lecciones presenciales en el área de Pittsburgh / Tri-State y clases virtuales a nivel internacional.",
-        contact_btn: "Contactar para Audición o Clase",
-        footer_rights: "Todos los derechos reservados."
+        nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas",
+        hero_subtitle: "Clases privadas de Violín y Viola. Respaldados por formación internacional y un aula virtual con herramientas acústicas sincronizadas en tiempo real.",
+        hero_cta: "Entrar al Aula Remota", studio_title: "Aula de Práctica Sincronizada",
+        role_teacher: "Panel del Profesor", role_student: "Vista del Alumno",
+        share_hint: "Envía este enlace directo a tu alumno para sincronizar la clase:", btn_copy: "Copiar", copied: "¡Copiado!",
+        join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic en el botón para activar el sonido de tu navegador y conectar con tu profesor.", join_btn: "Activar Audio y Conectar",
+        metronome_heading: "Metrónomo de Precisión", time_sig: "Compás:", btn_start_metro: "Iniciar Metrónomo", btn_stop_metro: "Detener Metrónomo",
+        drone_heading: "Drones de Afinación", drone_desc: "Sonido continuo para práctica (Quintas Justas):", btn_stop_drone: "Detener Afinador",
+        status_init: "Iniciando sistema...", status_waiting: "Esperando al alumno...", status_ready_student: "Esperando tu clic para conectar...",
+        status_connecting: "Conectando...", status_connected: "Conectado en Vivo", status_error: "Error de conexión",
+        faculty_title: "Nuestros Profesores", footer_rights: "Todos los derechos reservados."
       },
       en: {
-        nav_teachers: "Faculty",
-        nav_studio: "Live Classroom",
-        nav_contact: "Contact",
-        hero_title: "Strings Excellence & Innovation",
-        hero_subtitle: "Private violin and viola instruction backed by international training, top-tier orchestral performance, and a virtual teaching studio with synchronized precision tools.",
-        hero_cta: "Enter Virtual Studio",
-        studio_title: "Synchronized Studio Tools",
-        status_standalone: "Local Mode (Standalone)",
-        status_connected: "Live Connected",
-        role_teacher: "Teacher Panel (Controller)",
-        role_student: "Student View (Receiver)",
-        share_hint: "Send this direct link to your student to sync sound in their browser:",
-        btn_copy: "Copy",
-        copied: "Copied!",
-        metronome_heading: "Precision Web Metronome",
-        time_sig: "Time Signature:",
-        btn_start_metro: "Start",
-        btn_stop_metro: "Stop",
-        drone_heading: "Tuning Drones (Pure Fifths)",
-        drone_desc: "Continuous harmonic tones for intonation and scale practice:",
-        btn_stop_drone: "Stop Drone",
-        audio_heading: "Audio Sample Player",
-        audio_desc: "Load a local audio track (MP3/WAV) to trigger playback simultaneously:",
-        faculty_title: "Meet the Faculty",
-        abril_tagline: "Violinist | M.M. in Violin Performance (Duquesne) | Suzuki Educator",
-        abril_bio_1: "Abril C. Núñez is an accomplished violinist and educator with extensive international experience across orchestral, chamber, and solo stages. She earned her Master of Music from Duquesne University and Bachelor's from UNEARTE (Venezuela).",
-        abril_bio_2: "She currently holds a section violin chair with the Canton Symphony Orchestra and regularly performs with the Pittsburgh Opera Orchestra, Pittsburgh Ballet Theatre, Westmoreland Symphony, Wheeling Symphony, and Erie Philharmonic. She toured over 15 nations across Europe and Asia with the Peace Boat and performed alongside Andrea Bocelli in 2024.",
-        abril_bio_3: "Certified in Suzuki Philosophy with over 15 years of teaching experience across South America and the U.S. (Brighton Music Center, Young Artist Debut Orchestra), Abril nurtures violinists of all levels with technical rigor and musical encouragement.",
-        johann_tagline: "Violist & Violinist | M.M. (Duquesne Univ.) | LRSM Licentiate with Distinction",
-        johann_bio_1: "Johann David Díaz Ramírez is a dynamic violist and pedagogue trained at the Mozarteum of Caracas, holding a Master of Music from Duquesne University and the Licentiate diploma (LRSM) with Distinction from the Royal Schools of Music (UK).",
-        johann_bio_2: "Johann performs with the Pittsburgh Opera Orchestra, Youngstown Symphony, and Johnstown Symphony, with guest appearances at Erie Philharmonic, Canton Symphony, and Wheeling Symphony. Solo appearances feature Bartók's Concerto, Walton's Concerto, and Strauss's Don Quixote.",
-        johann_bio_3: "With extensive teaching experience at Johnstonbaugh's Music Centers and youth orchestras throughout the Americas, his pedagogy emphasizes natural ergonomics, healthy acoustic tone production, and modern interactive practice tools.",
-        press_links: "Press & Productions:",
-        listen_recordings: "Recordings & Media:",
-        contact_title: "Start Your Lessons",
-        contact_subtitle: "Offering in-person private lessons in the Pittsburgh / Tri-State region and virtual lessons worldwide.",
-        contact_btn: "Inquire for Lessons / Audition",
-        footer_rights: "All rights reserved."
+        nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation",
+        hero_subtitle: "Private violin and viola instruction backed by international training and a virtual studio with real-time synchronized tools.",
+        hero_cta: "Enter Virtual Studio", studio_title: "Synchronized Practice Studio",
+        role_teacher: "Teacher Panel", role_student: "Student View",
+        share_hint: "Send this direct link to your student to sync the class:", btn_copy: "Copy", copied: "Copied!",
+        join_title: "Welcome to class!", join_desc: "Click the button below to enable browser audio and connect to your teacher.", join_btn: "Enable Audio & Connect",
+        metronome_heading: "Precision Metronome", time_sig: "Time Signature:", btn_start_metro: "Start Metronome", btn_stop_metro: "Stop Metronome",
+        drone_heading: "Tuning Drones", drone_desc: "Continuous sound for intonation practice (Pure Fifths):", btn_stop_drone: "Stop Drone",
+        status_init: "Initializing system...", status_waiting: "Waiting for student to join...", status_ready_student: "Waiting for your click to connect...",
+        status_connecting: "Connecting...", status_connected: "Live Connected", status_error: "Connection Error",
+        faculty_title: "Meet the Faculty", footer_rights: "All rights reserved."
       }
     };
 
     let currentLang = 'es';
-
-    function initLanguage() {
-      // 1. Revisar si el usuario ya escogió un idioma anteriormente en este dispositivo
-      const savedLang = localStorage.getItem('site_lang');
-      if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
-        currentLang = savedLang;
-      } else {
-        // 2. Detección automática por idioma preferido del navegador
-        const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-        if (browserLang.startsWith('es')) {
-          currentLang = 'es';
-        } else {
-          currentLang = 'en';
-        }
-      }
-      applyLanguage(currentLang);
-    }
-
-    function toggleLanguage() {
-      currentLang = currentLang === 'es' ? 'en' : 'es';
-      localStorage.setItem('site_lang', currentLang);
-      applyLanguage(currentLang);
-    }
-
+    function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); }
     function applyLanguage(lang) {
       document.documentElement.lang = lang;
       document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES';
-
-      // Reemplazar textos marcados con data-i18n
       document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[lang] && translations[lang][key]) {
-          el.innerText = translations[lang][key];
-        }
+        if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')];
       });
     }
 
-    // Inicializar idioma de inmediato
-    initLanguage();
+    /* 2. LÓGICA DE WEBRTC Y CONEXIÓN ROBUSTA */
+    let peer = null;
+    let activeConnection = null;
+    let currentRole = 'teacher';
+    let joinIdFromUrl = null;
 
-    /* ==========================================================================
-       2. MOTOR DE SONIDO (WEB AUDIO API: METRÓNOMO Y AFINADOR)
-       ========================================================================== */
+    function setStatus(textKey, state = 'warning') {
+      const el = document.getElementById('status-text');
+      const dot = document.getElementById('status-dot');
+      el.innerText = translations[currentLang][textKey] || textKey;
+      dot.className = 'dot ' + state;
+    }
+
+    function initPeer() {
+      applyLanguage(currentLang);
+      const urlParams = new URLSearchParams(window.location.search);
+      joinIdFromUrl = urlParams.get('join');
+      setStatus('status_init', 'warning');
+
+      // Servidores STUN de Google para saltar bloqueos de red
+      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
+
+      peer.on('open', (id) => {
+        document.getElementById('peer-id-label').innerText = id;
+        if (joinIdFromUrl) {
+          setRole('student');
+          setStatus('status_ready_student', 'warning');
+        } else {
+          setRole('teacher');
+          setStatus('status_waiting', 'warning');
+          document.getElementById('student-link-input').value = window.location.href.split('?')[0] + '?join=' + id;
+        }
+      });
+
+      peer.on('connection', (conn) => {
+        activeConnection = conn;
+        setupConnectionEvents(conn);
+      });
+
+      peer.on('error', (err) => {
+        console.error(err);
+        setStatus('status_error', 'error');
+      });
+    }
+
+    function setupConnectionEvents(conn) {
+      conn.on('open', () => { setStatus('status_connected', 'connected'); });
+      conn.on('data', (data) => { handleIncomingData(data); });
+      conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'status_waiting' : 'status_error', 'warning'); });
+    }
+
+    function studentJoinClass() {
+      if (!joinIdFromUrl) return;
+      getAudioContext().resume().then(() => {
+        document.getElementById('student-join-panel').style.display = 'none';
+        document.getElementById('main-controls').style.opacity = '1';
+        setStatus('status_connecting', 'warning');
+        
+        const conn = peer.connect(joinIdFromUrl);
+        activeConnection = conn;
+        setupConnectionEvents(conn);
+      });
+    }
+
+    function setRole(role) {
+      currentRole = role;
+      document.getElementById('btn-role-teacher').classList.toggle('active', role === 'teacher');
+      document.getElementById('btn-role-student').classList.toggle('active', role === 'student');
+      document.getElementById('teacher-share-box').style.display = role === 'teacher' ? 'block' : 'none';
+      
+      const controls = document.getElementById('main-controls');
+      if (role === 'student') {
+        controls.style.pointerEvents = 'none'; // El alumno solo mira y escucha
+        if(document.getElementById('student-join-panel').style.display !== 'none') {
+           controls.style.opacity = '0.3';
+           document.getElementById('student-join-panel').style.display = 'block';
+        }
+      } else {
+        controls.style.pointerEvents = 'auto';
+        controls.style.opacity = '1';
+        document.getElementById('student-join-panel').style.display = 'none';
+      }
+    }
+
+    function sendPeerMessage(msg) {
+      if (activeConnection && activeConnection.open) activeConnection.send(msg);
+    }
+
+    function copyStudentLink() {
+      const input = document.getElementById('student-link-input');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      const btn = event.target;
+      btn.innerText = translations[currentLang].copied;
+      setTimeout(() => btn.innerText = translations[currentLang].btn_copy, 2000);
+    }
+
+    /* 3. MOTOR DE AUDIO (METRÓNOMO Y AFINADOR) */
     let audioCtx = null;
     let isPlaying = false;
     let bpm = 100;
@@ -725,16 +359,9 @@
     let currentBeat = 0;
     let nextNoteTime = 0.0;
     let timerID = null;
-    const lookahead = 25.0; // ms
-    const scheduleAheadTime = 0.1; // s
 
     function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       return audioCtx;
     }
 
@@ -743,229 +370,90 @@
       const gain = audioCtx.createGain();
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-
-      // Pulso acentuado en el 1er tiempo
-      if (beatNumber === 0) {
-        osc.frequency.value = 1000; // Clic agudo
-        gain.gain.setValueAtTime(0.8, time);
-      } else {
-        osc.frequency.value = 650;  // Clic suave
-        gain.gain.setValueAtTime(0.4, time);
-      }
-
+      osc.frequency.value = (beatNumber === 0) ? 1000 : 650;
+      gain.gain.setValueAtTime(beatNumber === 0 ? 0.8 : 0.4, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
-      osc.start(time);
-      osc.stop(time + 0.04);
+      osc.start(time); osc.stop(time + 0.04);
     }
 
     function scheduler() {
-      while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+      while (nextNoteTime < audioCtx.currentTime + 0.1) {
         scheduleNote(currentBeat, nextNoteTime);
-        nextNote();
+        nextNoteTime += (60.0 / bpm);
+        currentBeat = (currentBeat + 1) % beatsPerBar;
       }
-      timerID = setTimeout(scheduler, lookahead);
+      timerID = setTimeout(scheduler, 25);
     }
 
-    function nextNote() {
-      const secondsPerBeat = 60.0 / bpm;
-      nextNoteTime += secondsPerBeat;
-      currentBeat = (currentBeat + 1) % beatsPerBar;
-    }
-
-    function startMetronome(broadcast = true) {
+    function toggleMetronome(broadcast = true) {
       getAudioContext();
-      if (isPlaying) return;
-      isPlaying = true;
-      currentBeat = 0;
-      nextNoteTime = audioCtx.currentTime;
-      scheduler();
-      document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro;
-      
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
+      if (isPlaying) {
+        isPlaying = false;
+        clearTimeout(timerID);
+        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro;
+        document.getElementById('btn-play-metro').classList.remove('active');
+        if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'METRO_STOP' });
+      } else {
+        isPlaying = true;
+        currentBeat = 0;
+        nextNoteTime = audioCtx.currentTime;
+        scheduler();
+        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro;
+        document.getElementById('btn-play-metro').classList.add('active');
+        if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
       }
-    }
-
-    function stopMetronome(broadcast = true) {
-      isPlaying = false;
-      clearTimeout(timerID);
-      document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro;
-      
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'METRO_STOP' });
-      }
-    }
-
-    function toggleMetronome() {
-      if (isPlaying) stopMetronome();
-      else startMetronome();
     }
 
     function onTempoChange(val, broadcast = true) {
       bpm = parseInt(val);
       document.getElementById('bpm-display').innerText = bpm;
       document.getElementById('tempo-slider').value = bpm;
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
-      }
+      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
     }
 
     function setTimeSignature(sig, broadcast = true) {
       beatsPerBar = sig;
       currentBeat = 0;
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
-      }
+      document.querySelectorAll('.ts-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('ts-' + sig).classList.add('active');
+      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
     }
 
-    /* Drones de afinación acústicos con oscilador senoidal suave */
-    let droneOsc = null;
-    let droneGain = null;
-
-    function playDroneNote(freq, noteName, broadcast = true) {
+    let droneOsc = null; let droneGain = null; let activeDroneBtn = null;
+    function toggleDrone(freq, noteName, broadcast = true) {
       getAudioContext();
       stopDrone(false);
-
       droneOsc = audioCtx.createOscillator();
       droneGain = audioCtx.createGain();
-
       droneOsc.type = 'sine';
       droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
       droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
       droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
-
       droneOsc.connect(droneGain);
       droneGain.connect(audioCtx.destination);
       droneOsc.start();
-
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'DRONE_START', freq, noteName });
-      }
+      
+      activeDroneBtn = 'drone-' + noteName;
+      document.getElementById(activeDroneBtn).classList.add('playing');
+      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'DRONE_START', freq, noteName });
     }
 
     function stopDrone(broadcast = true) {
-      if (droneOsc && droneGain) {
-        droneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        setTimeout(() => {
-          if (droneOsc) {
-            droneOsc.stop();
-            droneOsc.disconnect();
-            droneOsc = null;
-          }
-        }, 50);
-      }
-      if (broadcast && currentRole === 'teacher') {
-        sendPeerMessage({ type: 'DRONE_STOP' });
-      }
+      if (droneGain) droneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      setTimeout(() => { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); droneOsc = null; } }, 50);
+      document.querySelectorAll('.drone-btn').forEach(btn => btn.classList.remove('playing'));
+      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'DRONE_STOP' });
     }
 
-    /* ==========================================================================
-       3. CONEXIÓN P2P EN TIEMPO REAL CON PEERJS (WEBRTC)
-       ========================================================================== */
-    let peer = null;
-    let activeConnection = null;
-    let currentRole = 'teacher';
-
-    function initPeer() {
-      // Revisa si la URL contiene ?join=PEER_ID para auto-entrar como alumno
-      const urlParams = new URLSearchParams(window.location.search);
-      const joinId = urlParams.get('join');
-
-      peer = new Peer();
-
-      peer.on('open', (id) => {
-        document.getElementById('peer-id-label').innerText = id;
-        
-        if (joinId) {
-          // El usuario ingresó a través del enlace de alumno
-          setRole('student');
-          connectToTeacher(joinId);
-        } else {
-          updateStudentLink(id);
-        }
-      });
-
-      // El profesor escucha conexiones entrantes del alumno
-      peer.on('connection', (conn) => {
-        activeConnection = conn;
-        setupConnectionEvents(conn);
-      });
-    }
-
-    function setupConnectionEvents(conn) {
-      conn.on('open', () => {
-        document.getElementById('status-dot').classList.add('connected');
-        document.getElementById('status-text').innerText = translations[currentLang].status_connected;
-      });
-
-      conn.on('data', (data) => {
-        handleIncomingData(data);
-      });
-
-      conn.on('close', () => {
-        document.getElementById('status-dot').classList.remove('connected');
-        document.getElementById('status-text').innerText = translations[currentLang].status_standalone;
-      });
-    }
-
-    function connectToTeacher(teacherId) {
-      const conn = peer.connect(teacherId);
-      activeConnection = conn;
-      setupConnectionEvents(conn);
-    }
-
-    function sendPeerMessage(msg) {
-      if (activeConnection && activeConnection.open) {
-        activeConnection.send(msg);
-      }
-    }
-
-    // Receptor del Alumno: ejecuta en su máquina lo que el profesor manipula
     function handleIncomingData(data) {
-      if (data.type === 'METRO_START') {
-        bpm = data.bpm;
-        beatsPerBar = data.beatsPerBar;
-        onTempoChange(bpm, false);
-        startMetronome(false);
-      } else if (data.type === 'METRO_STOP') {
-        stopMetronome(false);
-      } else if (data.type === 'TEMPO_CHANGE') {
-        onTempoChange(data.bpm, false);
-      } else if (data.type === 'TIMESIG_CHANGE') {
-        setTimeSignature(data.beatsPerBar, false);
-      } else if (data.type === 'DRONE_START') {
-        playDroneNote(data.freq, data.noteName, false);
-      } else if (data.type === 'DRONE_STOP') {
-        stopDrone(false);
-      }
+      if (data.type === 'METRO_START') { bpm = data.bpm; beatsPerBar = data.beatsPerBar; onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); if(!isPlaying) toggleMetronome(false); }
+      else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
+      else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
+      else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
+      else if (data.type === 'DRONE_START') { toggleDrone(data.freq, data.noteName, false); }
+      else if (data.type === 'DRONE_STOP') { stopDrone(false); }
     }
 
-    function setRole(role) {
-      currentRole = role;
-      document.getElementById('btn-role-teacher').classList.toggle('active', role === 'teacher');
-      document.getElementById('btn-role-student').classList.toggle('active', role === 'student');
-      document.getElementById('teacher-share-box').style.display = role === 'teacher' ? 'block' : 'none';
-    }
-
-    function updateStudentLink(id) {
-      const base = window.location.href.split('?')[0];
-      const link = `${base}?join=${id}`;
-      document.getElementById('student-link-input').value = link;
-    }
-
-    function copyStudentLink() {
-      const input = document.getElementById('student-link-input');
-      input.select();
-      navigator.clipboard.writeText(input.value).then(() => {
-        const btn = event.target;
-        const originalText = btn.innerText;
-        btn.innerText = translations[currentLang].copied;
-        setTimeout(() => btn.innerText = originalText, 2000);
-      });
-    }
-
-    // Inicializar PeerJS al cargar la página
     window.addEventListener('load', initPeer);
   </script>
 </body>
