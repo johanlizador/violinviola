@@ -269,23 +269,74 @@ function updateMediaButtonsText() {
   if(fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
 }
 
-/* --- Pantalla Completa --- */
+/* --- Pantalla Completa ---
+   iPhone no implementa la API de pantalla completa sobre elementos que no sean
+   <video>, así que ahí caemos a una pantalla completa simulada con CSS. */
+function nativeFullscreenAvailable(el) {
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+}
+
+function fullscreenActive(el) {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement) || el.classList.contains('faux-fullscreen');
+}
+
+function enterFauxFullscreen(el) {
+  resetLocalBoxPosition();           // si venía arrastrado, podría quedar fuera de vista
+  el.classList.add('faux-fullscreen');
+  document.body.classList.add('fs-lock');
+  isFullScreen = true;
+  updateMediaButtonsText();
+}
+
+function exitFauxFullscreen(el) {
+  el.classList.remove('faux-fullscreen');
+  document.body.classList.remove('fs-lock');
+  resetLocalBoxPosition();
+  isFullScreen = false;
+  updateMediaButtonsText();
+}
+
+function resetLocalBoxPosition() {
+  const box = document.getElementById('draggable-local');
+  if (!box) return;
+  box.style.top = ''; box.style.left = ''; box.style.right = ''; box.style.bottom = '';
+}
+
 function toggleFullScreen() {
   const container = document.getElementById('video-conference-container');
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    if (container.requestFullscreen) container.requestFullscreen();
-    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen(); // Safari
-    isFullScreen = true;
+
+  if (!fullscreenActive(container)) {
+    if (nativeFullscreenAvailable(container)) {
+      const req = container.requestFullscreen
+        ? container.requestFullscreen()
+        : container.webkitRequestFullscreen();
+      // Algunos navegadores rechazan la promesa: ahí también caemos al modo simulado
+      if (req && typeof req.catch === 'function') req.catch(() => enterFauxFullscreen(container));
+    } else {
+      enterFauxFullscreen(container);
+    }
   } else {
+    if (container.classList.contains('faux-fullscreen')) {
+      exitFauxFullscreen(container);
+      return;
+    }
     if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); // Safari
-    isFullScreen = false;
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
   updateMediaButtonsText();
 }
 
+// Escape también sale del modo simulado
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const container = document.getElementById('video-conference-container');
+  if (container && container.classList.contains('faux-fullscreen')) exitFauxFullscreen(container);
+});
+
 function onFullScreenChange() {
-  isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const container = document.getElementById('video-conference-container');
+  isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement)
+              || (container && container.classList.contains('faux-fullscreen'));
   updateMediaButtonsText();
 }
 document.addEventListener('fullscreenchange', onFullScreenChange);
