@@ -48,78 +48,70 @@ input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: poi
 .share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 .share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
 
-/* ======== ESTILOS ZOOM Y PANTALLA COMPLETA ======== */
+/* ======== ESTILOS ZOOM PRO (PIP Y GALERÍA) ======== */
 #video-conference-container {
   display: flex;
   flex-direction: column;
-  background: #111;
+  background: #050505;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
 }
 
 .video-grid-layout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  background: #000;
-  flex: 1;
-  min-height: 350px;
-}
-
-.video-box {
-  flex: 1;
-  min-width: 280px; /* Asegura que en móviles se apilen, en PC se vean lado a lado */
   position: relative;
-  background: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.video-box video {
   width: 100%;
-  height: 100%;
-  object-fit: contain; /* Contain es vital para que no se corte el arco o el instrumento */
+  height: 500px; /* Altura base */
   background: #000;
+  overflow: hidden;
 }
 
-.video-label {
+.video-box { position: relative; display: flex; align-items: center; justify-content: center; }
+.video-box video { width: 100%; height: 100%; object-fit: contain; }
+.video-label { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #fff; z-index: 5; pointer-events: none; }
+.video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 1rem; z-index: 1; }
+
+/* -- MODO PICTURE-IN-PICTURE (PIP) -- */
+.pip-mode .remote-box { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 2; }
+.pip-mode .local-box {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #fff;
-  z-index: 5;
+  width: 25%;
+  min-width: 140px;
+  max-width: 250px;
+  aspect-ratio: 16/9;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 8px;
+  border: 2px solid #555;
+  background: #111;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+  z-index: 10;
+  cursor: grab;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.pip-mode .local-box:active { cursor: grabbing; box-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+.pip-mode .local-box:hover { border-color: var(--accent-gold); }
+
+/* -- MODO GALERÍA (Mitad y Mitad) -- */
+.gallery-mode { display: flex; flex-direction: row; }
+.gallery-mode .video-box { flex: 1; height: 100%; position: static !important; border: 1px solid #222; transform: none !important; }
+@media (max-width: 600px) {
+  .gallery-mode { flex-direction: column; }
 }
 
-.video-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  padding: 1rem;
-  z-index: 1;
-}
-
-/* Barra inferior tipo Zoom */
+/* Barra inferior de controles */
 .call-controls-bar {
   display: flex;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  padding: 1rem;
-  background: #1a1a1a;
-  border-top: 1px solid #333;
+  gap: 1rem;
+  padding: 1.2rem 1rem;
+  background: #111;
+  border-top: 1px solid #222;
+  z-index: 15;
 }
 
 .call-btn {
@@ -131,29 +123,24 @@ input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: poi
   font-weight: 600;
   cursor: pointer;
   border: 1px solid #444;
-  background: #2d2d2d;
+  background: #2a2a2a;
   color: #fff;
   transition: all 0.2s;
 }
 
-.call-btn:hover { background: #3d3d3d; }
+.call-btn:hover { background: #3d3d3d; border-color: #666; }
 .call-btn.disabled { background: rgba(218, 54, 51, 0.15); color: var(--danger); border-color: var(--danger); }
-.call-btn.btn-fullscreen { background: transparent; border-color: var(--accent-gold); color: var(--accent-gold); }
+.call-btn.btn-fullscreen { border-color: var(--accent-gold); color: var(--accent-gold); background: rgba(229, 169, 60, 0.1); }
 .call-btn.btn-fullscreen:hover { background: var(--accent-gold); color: #000; }
 
-/* Ajustes cuando está en Pantalla Completa (Fullscreen) */
-#video-conference-container:fullscreen {
-  border-radius: 0;
-  border: none;
-  background: #000;
-}
-
-#video-conference-container:fullscreen .video-grid-layout {
-  min-height: calc(100vh - 80px); /* Deja espacio para la barra de abajo */
-}
+/* -- FULLSCREEN (Pantalla Completa) -- */
+#video-conference-container:fullscreen { border-radius: 0; border: none; background: #000; }
+#video-conference-container:fullscreen .video-grid-layout { height: calc(100vh - 80px); }
+/* Fix for webkit */
+#video-conference-container:-webkit-full-screen { border-radius: 0; border: none; background: #000; }
+#video-conference-container:-webkit-full-screen .video-grid-layout { height: calc(100vh - 80px); }
 
 /* -------------------------------------------------- */
-
 .teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
 @media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
 .teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; }
