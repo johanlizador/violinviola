@@ -28,8 +28,7 @@ nav a:hover { color: var(--text-main); }
 #student-join-panel { display: none; text-align: center; padding: 2rem; border: 1px solid var(--accent-gold); border-radius: 8px; margin-bottom: 1.5rem; background: rgba(229, 169, 60, 0.05); }
 #teacher-share-box { display: none; margin-bottom: 1.5rem; }
 
-.controls-grid { display: none; grid-template-columns: 1fr 1fr; gap: 1.5rem; } 
-@media (max-width: 700px) { .controls-grid { grid-template-columns: 1fr; } }
+.controls-grid { display: none; grid-template-columns: 1fr; gap: 1.5rem; }
 .card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; position: relative; }
 
 .lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.6); z-index: 10; border-radius: 10px; display: none; cursor: not-allowed; }
@@ -148,3 +147,182 @@ input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: poi
 .teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
 .teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
 footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+
+/* ======== PANEL DE AFINACIÓN (LA de referencia + teclado) ======== */
+.tuner-top {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 1.6rem;
+}
+@media (max-width: 760px) { .tuner-top { grid-template-columns: 1fr; } }
+
+.block-caption {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+/* -- Calibración del LA -- */
+.calib-row { display: flex; align-items: stretch; gap: 0.5rem; }
+.calib-step {
+  width: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.calib-step:hover { background: var(--border-color); color: var(--accent-gold); }
+.calib-step:active { transform: scale(0.94); }
+.calib-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  min-width: 130px;
+  padding: 0.4rem 0.9rem;
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+.calib-value small { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+
+.calib-presets { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+.preset-btn {
+  flex: 1 1 auto;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.preset-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+.preset-btn.active { background: rgba(229, 169, 60, 0.15); border-color: var(--accent-gold); color: var(--accent-gold); }
+
+/* -- Cuerdas al aire -- */
+.drone-btn { line-height: 1.2; transition: all 0.15s; }
+.drone-btn small { display: block; font-size: 0.65rem; font-weight: 600; color: var(--text-muted); }
+.drone-btn:hover { border-color: var(--accent-gold); }
+.drone-btn.playing small { color: rgba(0,0,0,0.6); }
+
+/* -- Barra del teclado -- */
+.keyboard-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.keyboard-bar .block-caption { margin-bottom: 0; }
+.octave-controls { display: flex; align-items: center; gap: 0.5rem; }
+.octave-btn { flex: 0 0 auto; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+.range-label {
+  min-width: 96px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -- Teclado de piano -- */
+.keyboard-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: 0.7rem;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.piano {
+  position: relative;
+  display: flex;
+  height: 150px;
+  min-width: 620px;
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 6px 8px 6px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+@media (max-width: 700px) { .piano { height: 130px; } }
+
+.key {
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+.key-label { font-size: 0.62rem; font-weight: 700; pointer-events: none; padding-bottom: 7px; }
+
+.key.white {
+  flex: 1 1 0;
+  min-width: 0;
+  background: linear-gradient(#fafafa, #e4e4e4);
+  border: 1px solid #b9b9b9;
+  border-radius: 0 0 5px 5px;
+  color: #6a6a6a;
+  margin-right: -1px;
+  z-index: 1;
+}
+.key.white:hover { background: linear-gradient(#fff, #f3e0bd); }
+.key.white.playing { background: linear-gradient(var(--accent-gold-hover), var(--accent-gold)); color: #000; box-shadow: inset 0 -3px 10px rgba(0,0,0,0.25); }
+.key.white.is-c .key-label { color: #2b2b2b; }
+
+.key.black {
+  position: absolute;
+  top: 6px;
+  width: calc((100% - 12px) / var(--white-count) * 0.62);
+  height: 62%;
+  transform: translateX(-50%);
+  background: linear-gradient(#3a3a3a, #101010);
+  border: 1px solid #000;
+  border-radius: 0 0 4px 4px;
+  color: #cfcfcf;
+  z-index: 3;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+}
+.key.black:hover { background: linear-gradient(#5a4a28, #221a0b); }
+.key.black.playing { background: linear-gradient(var(--accent-gold), #a8761f); color: #000; border-color: var(--accent-gold); }
+.key.black .key-label { font-size: 0.55rem; padding-bottom: 5px; }
+
+/* -- Pie del panel -- */
+.tuner-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+.now-playing {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+.now-playing.idle { color: var(--text-muted); font-weight: 500; }
+.tuner-footer .tool-btn { flex: 0 0 auto; }
