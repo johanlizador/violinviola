@@ -300,7 +300,10 @@ async function prepareMedia() {
       });
     }
     const prev = document.getElementById('lobby-video');
-    if (prev) prev.srcObject = localStream;
+    if (prev) {
+      prev.srcObject = localStream;
+      prev.play().catch(e => console.warn('[aula] auto-play lobby bloqueado:', e));
+    }
     const empty = document.getElementById('lobby-preview-empty');
     if (empty) empty.style.display = 'none';
     startMicMeter();
@@ -384,7 +387,9 @@ async function studentEnterClass() {
   setStatus('st_connecting', 'warning');
 
   // Video listo desde el primer segundo, sin segundo botón
-  document.getElementById('local-video').srcObject = localStream;
+  const localVid = document.getElementById('local-video');
+  localVid.srcObject = localStream;
+  localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
   setLocalPlaceholder(false);
   document.getElementById('btn-start-video').style.display = 'none';
   document.getElementById('video-conference-container').style.display = 'flex';
@@ -466,7 +471,10 @@ async function startVideo() {
       audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } 
     });
 
-    document.getElementById('local-video').srcObject = localStream;
+    const localVid = document.getElementById('local-video');
+    localVid.srcObject = localStream;
+    localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
+    
     setLocalPlaceholder(false);
     btn.style.display = 'none'; 
     
@@ -528,7 +536,7 @@ function stopAllVideoTracks() {
   }));
 
   const lv = document.getElementById('local-video');
-  if (lv) lv.srcObject = localStream;
+  if (lv) { lv.srcObject = localStream; lv.play().catch(e=>console.warn(e)); }
   const pv = document.getElementById('lobby-video');
   if (pv) pv.srcObject = null;
   return detenidas;
@@ -585,7 +593,9 @@ async function toggleCam() {
       const fresca = await navigator.mediaDevices.getUserMedia({ video: true });
       const pista = fresca.getVideoTracks()[0];
       localStream.addTrack(pista);
-      document.getElementById('local-video').srcObject = localStream;
+      const localVid = document.getElementById('local-video');
+      localVid.srcObject = localStream;
+      localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
 
       await ensureVideoNegotiated(pista);
       isCamOn = true;
@@ -782,8 +792,12 @@ function setupCallListener() {
 
 function setupCallEvents(call) {
   call.on('stream', (remoteStream) => {
-    document.getElementById('remote-video').srcObject = remoteStream;
+    const remoteVid = document.getElementById('remote-video');
+    remoteVid.srcObject = remoteStream;
     document.getElementById('remote-placeholder').style.display = 'none';
+    
+    // Forzar la reproducción para navegadores estrictos (Safari/iOS)
+    remoteVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
   });
   call.on('close', () => {
     document.getElementById('remote-video').srcObject = null;
