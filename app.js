@@ -3,8 +3,14 @@ const TEACHER_PASSWORD = "viola2026";
 let isStudentAllowed = false; 
 
 const translations = {
-  es: { nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando cámara del otro participante...", vid_remote: "Remoto" },
-  en: { nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant's camera...", vid_remote: "Remote" }
+  es: { 
+    nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando cámara del otro participante...", vid_remote: "Remoto", 
+    btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla Completa"
+  },
+  en: { 
+    nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant's camera...", vid_remote: "Remote",
+    btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Full Screen"
+  }
 };
 
 let currentLang = 'es';
@@ -106,12 +112,13 @@ function setupConn(conn) {
 function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
 function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
 
-/* LÓGICA DE VIDEOLLAMADA Y BOTONES MUTE/CÁMARA */
+/* LÓGICA DE VIDEOLLAMADA, PANTALLA COMPLETA Y BOTONES */
 let localStream = null;
 let currentCall = null;
 let pendingCall = null;
 let isMicOn = true;
 let isCamOn = true;
+let isFullScreen = false;
 
 async function startVideo() {
   const btn = document.getElementById('btn-start-video');
@@ -128,7 +135,8 @@ async function startVideo() {
     document.getElementById('local-placeholder').style.display = 'none';
     btn.style.display = 'none'; 
     
-    document.getElementById('call-controls').style.display = 'flex';
+    // Revelar la interfaz de videollamada tipo Zoom
+    document.getElementById('video-conference-container').style.display = 'flex';
 
     if (activeConnection && activeConnection.peer) {
       makeCall(activeConnection.peer);
@@ -177,18 +185,46 @@ function toggleCam() {
 }
 
 function updateMediaButtonsText() {
-  const micBtn = document.getElementById('btn-toggle-mic');
-  const camBtn = document.getElementById('btn-toggle-cam');
-  if (!micBtn || !camBtn) return;
+  const micSpan = document.querySelector('#btn-toggle-mic span');
+  const camSpan = document.querySelector('#btn-toggle-cam span');
+  const fsSpan = document.querySelector('.btn-fullscreen span');
+  
+  if (!micSpan || !camSpan) return;
 
-  if (currentLang === 'es') {
-    micBtn.innerText = isMicOn ? "🎤 Silenciar Micrófono" : "🎤 Activar Audio";
-    camBtn.innerText = isCamOn ? "📷 Apagar Cámara" : "📷 Encender Cámara";
-  } else {
-    micBtn.innerText = isMicOn ? "🎤 Mute Mic" : "🎤 Unmute";
-    camBtn.innerText = isCamOn ? "📷 Turn Off Cam" : "📷 Turn On Cam";
-  }
+  micSpan.innerText = translations[currentLang][isMicOn ? "btn_mute" : "btn_unmute"];
+  camSpan.innerText = translations[currentLang][isCamOn ? "btn_cam_off" : "btn_cam_on"];
+  if(fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
 }
+
+/* Funcionalidad de Pantalla Completa (Fullscreen) */
+function toggleFullScreen() {
+  const container = document.getElementById('video-conference-container');
+  
+  if (!document.fullscreenElement) {
+    if (container.requestFullscreen) {
+      container.requestFullscreen();
+    } else if (container.webkitRequestFullscreen) { /* Safari */
+      container.webkitRequestFullscreen();
+    } else if (container.msRequestFullscreen) { /* IE11 */
+      container.msRequestFullscreen();
+    }
+    isFullScreen = true;
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) { /* Safari */
+      document.webkitExitFullscreen();
+    }
+    isFullScreen = false;
+  }
+  updateMediaButtonsText();
+}
+
+// Escuchar si el usuario sale de pantalla completa usando la tecla 'Escape'
+document.addEventListener('fullscreenchange', () => {
+    isFullScreen = !!document.fullscreenElement;
+    updateMediaButtonsText();
+});
 
 function makeCall(remoteId) {
   if (!localStream) return;
