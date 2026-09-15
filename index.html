@@ -78,7 +78,7 @@
       <!-- Controles Principales -->
       <div class="controls-grid" id="main-controls">
         
-        <!-- SECCIÓN DE VIDEOLLAMADA ESTILO ZOOM -->
+        <!-- SECCIÓN DE VIDEOLLAMADA (ESTILO ZOOM PRO) -->
         <div class="card-inner" style="grid-column: 1 / -1; padding: 1.4rem;">
           <h4 data-i18n="video_heading">Videollamada Integrada</h4>
           <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 1rem;" data-i18n="video_hint">⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.</p>
@@ -87,29 +87,32 @@
             Encender Cámara y Micrófono
           </button>
 
-          <!-- Contenedor que simula la ventana de Zoom -->
-          <div id="video-conference-container" style="display: none;">
-            <div class="video-grid-layout">
-              <div class="video-box">
-                 <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
-                 <video id="local-video" autoplay playsinline muted></video>
-                 <div class="video-label">Local (Tú)</div>
-              </div>
-              <div class="video-box">
-                 <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando cámara del otro participante...</div>
+          <!-- Contenedor Zoom (Oculto hasta encender cámara) -->
+          <div id="video-conference-container" class="pip-mode" style="display: none;">
+            
+            <div class="video-grid-layout" id="video-grid">
+              <!-- Video Remoto (El Grande) -->
+              <div class="video-box remote-box">
+                 <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando a que la otra persona encienda su cámara...</div>
                  <video id="remote-video" autoplay playsinline></video>
                  <div class="video-label" data-i18n="vid_remote">Remoto</div>
               </div>
+              
+              <!-- Video Local (El Pequeño Arrastrable) -->
+              <div class="video-box local-box" id="draggable-local">
+                 <video id="local-video" autoplay playsinline muted></video>
+                 <div class="video-label">Tú</div>
+              </div>
             </div>
             
-            <!-- Barra de Controles Inferior -->
-            <div class="call-controls-bar" id="call-controls" style="display: none;">
+            <!-- Barra de Controles Flotante / Inferior -->
+            <div class="call-controls-bar" id="call-controls">
               <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 <span data-i18n="btn_mute">Silenciar</span></button>
               <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 <span data-i18n="btn_cam_off">Apagar Cámara</span></button>
+              <button class="call-btn" id="btn-toggle-layout" onclick="toggleViewLayout()">🔲 <span data-i18n="btn_layout">Cambiar Vista</span></button>
               <button class="call-btn btn-fullscreen" onclick="toggleFullScreen()">⛶ <span data-i18n="btn_fullscreen">Pantalla Completa</span></button>
             </div>
           </div>
-
         </div>
 
         <!-- Metrónomo -->
