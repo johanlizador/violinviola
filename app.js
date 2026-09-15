@@ -421,7 +421,8 @@ function setupConn(conn) {
       pushToolStateToPeer();
     }
     if (currentRole === 'student' && studentName) sendPeerMessage({ type: 'HELLO', name: studentName });
-    if(localStream && conn.peer) makeCall(conn.peer);
+    if (localStream && !isCamOn) sendPeerMessage({ type: 'CAM_STATE', on: false });
+    if (localStream && conn.peer) makeCall(conn.peer);
   });
   conn.on('data', (data) => { handleData(data); });
   conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
@@ -533,6 +534,26 @@ function stopAllVideoTracks() {
   return detenidas;
 }
 
+/* Si la llamada se creó mientras la cámara estaba apagada, el stream no tenía
+   pista de vídeo y la negociación salió SIN vídeo: no existe ningún emisor al
+   que engancharle la pista nueva, y ninguno de los dos se ve nunca más aunque
+   el audio siga perfecto. En ese caso no basta con replaceTrack: hay que
+   rehacer la llamada para que se negocie el vídeo desde cero. */
+async function ensureVideoNegotiated(pista) {
+  const sender = videoSender();
+  if (sender) {
+    await sender.replaceTrack(pista);
+    return;
+  }
+  const remoto = (currentCall && currentCall.peer)
+              || (activeConnection && activeConnection.peer);
+  if (!remoto) return;                      // aún no hay nadie al otro lado
+  showDiagnostic('renegociando vídeo...');
+  try { if (currentCall) currentCall.close(); } catch (e) {}
+  currentCall = null;
+  makeCall(remoto);
+}
+
 function videoSender() {
   const pc = currentCall && currentCall.peerConnection;
   if (!pc) return null;
@@ -566,8 +587,7 @@ async function toggleCam() {
       localStream.addTrack(pista);
       document.getElementById('local-video').srcObject = localStream;
 
-      const sender = videoSender();
-      if (sender) await sender.replaceTrack(pista);
+      await ensureVideoNegotiated(pista);
       isCamOn = true;
       sendPeerMessage({ type: 'CAM_STATE', on: true });
     }
@@ -744,6 +764,8 @@ function makeCall(remoteId) {
 function setupCallListener() {
   peer.on('call', (call) => {
     if (localStream) {
+      try { if (currentCall && currentCall !== call) currentCall.close(); } catch (e) {}
+      currentCall = call;                  // también al contestar, no sólo al llamar
       call.answer(localStream);
       setupCallEvents(call);
     } else {
