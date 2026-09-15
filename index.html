@@ -44,9 +44,10 @@
     .tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
     input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
     .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
     .tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
     .tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
+    
     .drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
     .drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; }
     .drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
@@ -54,12 +55,16 @@
     .share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
     .share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
 
-    /* ESTILOS DE VIDEOLLAMADA */
+    /* ESTILOS DE VIDEOLLAMADA Y BOTONES DE CONTROL */
     .video-wrapper { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; justify-content: center; }
     .video-box { flex: 1; min-width: 250px; max-width: 500px; background: #000; border-radius: 8px; overflow: hidden; position: relative; aspect-ratio: 16/9; border: 1px solid var(--border-color); }
     .video-box video { width: 100%; height: 100%; object-fit: cover; }
     .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; color: #fff; }
     .video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 1rem; }
+    
+    .call-controls { display: none; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+    .call-btn { padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: all 0.2s; }
+    .call-btn.disabled { background: rgba(218, 54, 51, 0.1); color: var(--danger); border-color: var(--danger); }
 
     /* Profesores */
     .teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
@@ -119,7 +124,7 @@
         <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
       </div>
 
-      <!-- Herramientas del Profesor -->
+      <!-- Herramientas del Profesor (Solo visibles post-login) -->
       <div id="teacher-share-box">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
           <div style="flex: 1; min-width: 250px;">
@@ -139,10 +144,10 @@
 
       <div style="height: 1.5rem;"></div>
 
-      <!-- Controles Principales -->
+      <!-- Controles Principales (Se revelan para el profe al poner la clave) -->
       <div class="controls-grid" id="main-controls">
         
-        <!-- SECCIÓN DE VIDEOLLAMADA (Ocupa todo el ancho) -->
+        <!-- SECCIÓN DE VIDEOLLAMADA -->
         <div class="card-inner" style="grid-column: 1 / -1;">
           <h4 data-i18n="video_heading">Videollamada Integrada</h4>
           <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 1rem;" data-i18n="video_hint">⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.</p>
@@ -151,10 +156,15 @@
             Encender Cámara y Micrófono
           </button>
 
+          <!-- Botones de Silenciar y Apagar Cámara (Aparecen al encender video) -->
+          <div class="call-controls" id="call-controls">
+            <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 Silenciar Micrófono</button>
+            <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 Apagar Cámara</button>
+          </div>
+
           <div class="video-wrapper">
             <div class="video-box">
                <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
-               <!-- playsinline es vital para que funcione en iOS -->
                <video id="local-video" autoplay playsinline muted></video>
                <div class="video-label">Local (Tú)</div>
             </div>
@@ -228,7 +238,7 @@
       en: { nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant's camera...", vid_remote: "Remote" }
     };
     let currentLang = 'es';
-    function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); }
+    function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); updateMediaButtonsText(); }
     function applyLanguage(lang) { document.documentElement.lang = lang; document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES'; document.querySelectorAll('[data-i18n]').forEach(el => { if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')]; }); }
 
     /* 2. LÓGICA DE ROLES Y AUTH */
@@ -243,10 +253,11 @@
         currentRole = 'student';
         document.getElementById('teacher-login-panel').style.display = 'none';
         document.getElementById('student-join-panel').style.display = 'block';
-        document.getElementById('main-controls').style.display = 'grid';
+        document.getElementById('main-controls').style.display = 'grid'; // Al alumno se le revelan los controles automáticamente
         lockStudentInterface(true); 
         initPeerClient();
       } else {
+        // Al profe se le pide contraseña, main-controls está oculto
         document.getElementById('teacher-login-panel').style.display = 'block';
       }
     }
@@ -257,7 +268,7 @@
         currentRole = 'teacher';
         document.getElementById('teacher-login-panel').style.display = 'none';
         document.getElementById('teacher-share-box').style.display = 'block';
-        document.getElementById('main-controls').style.display = 'grid';
+        document.getElementById('main-controls').style.display = 'grid'; // Se revelan la cámara y el metrónomo para el profe
         lockStudentInterface(false); 
         initPeerTeacher();
       } else {
@@ -306,7 +317,6 @@
         setStatus("Conectado en Vivo", "connected"); 
         if(currentRole === 'teacher') sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
         
-        // Si ya tengo cámara encendida, llamo automáticamente al que se acaba de conectar
         if(localStream && conn.peer) {
           makeCall(conn.peer);
         }
@@ -318,10 +328,12 @@
     function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
     function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
 
-    /* LÓGICA DE VIDEOLLAMADA */
+    /* LÓGICA DE VIDEOLLAMADA Y BOTONES MUTE/CÁMARA */
     let localStream = null;
     let currentCall = null;
     let pendingCall = null;
+    let isMicOn = true;
+    let isCamOn = true;
 
     async function startVideo() {
       const btn = document.getElementById('btn-start-video');
@@ -329,7 +341,6 @@
       btn.innerText = "Accediendo a cámara...";
 
       try {
-        // Solicitamos acceso a cámara y micrófono (Optimizado para evitar cortes de audio pero controlando eco)
         localStream = await navigator.mediaDevices.getUserMedia({ 
           video: true, 
           audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } 
@@ -337,14 +348,15 @@
 
         document.getElementById('local-video').srcObject = localStream;
         document.getElementById('local-placeholder').style.display = 'none';
-        btn.style.display = 'none'; // Ocultamos el botón al encender
+        btn.style.display = 'none'; 
+        
+        // Muestra la barra de controles de Mute / Cámara
+        document.getElementById('call-controls').style.display = 'flex';
 
-        // Si ya hay alguien conectado, le hacemos la llamada
         if (activeConnection && activeConnection.peer) {
           makeCall(activeConnection.peer);
         }
 
-        // Si teníamos una llamada entrante esperando, la contestamos
         if (pendingCall) {
           pendingCall.answer(localStream);
           setupCallEvents(pendingCall);
@@ -359,6 +371,47 @@
       }
     }
 
+    function toggleMic() {
+      if (!localStream) return;
+      isMicOn = !isMicOn;
+      localStream.getAudioTracks().forEach(track => track.enabled = isMicOn);
+      
+      const btn = document.getElementById('btn-toggle-mic');
+      if (isMicOn) {
+        btn.classList.remove('disabled');
+      } else {
+        btn.classList.add('disabled');
+      }
+      updateMediaButtonsText();
+    }
+
+    function toggleCam() {
+      if (!localStream) return;
+      isCamOn = !isCamOn;
+      localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
+      
+      const btn = document.getElementById('btn-toggle-cam');
+      if (isCamOn) {
+        btn.classList.remove('disabled');
+      } else {
+        btn.classList.add('disabled');
+      }
+      updateMediaButtonsText();
+    }
+
+    function updateMediaButtonsText() {
+      const micBtn = document.getElementById('btn-toggle-mic');
+      const camBtn = document.getElementById('btn-toggle-cam');
+      
+      if (currentLang === 'es') {
+        micBtn.innerText = isMicOn ? "🎤 Silenciar Micrófono" : "🎤 Activar Audio";
+        camBtn.innerText = isCamOn ? "📷 Apagar Cámara" : "📷 Encender Cámara";
+      } else {
+        micBtn.innerText = isMicOn ? "🎤 Mute Mic" : "🎤 Unmute";
+        camBtn.innerText = isCamOn ? "📷 Turn Off Cam" : "📷 Turn On Cam";
+      }
+    }
+
     function makeCall(remoteId) {
       if (!localStream) return;
       currentCall = peer.call(remoteId, localStream);
@@ -368,11 +421,9 @@
     function setupCallListener() {
       peer.on('call', (call) => {
         if (localStream) {
-          // Si ya tengo la cámara encendida, contesto de inmediato
           call.answer(localStream);
           setupCallEvents(call);
         } else {
-          // Si me están llamando pero no he encendido mi cámara, aviso en el botón
           pendingCall = call;
           const btn = document.getElementById('btn-start-video');
           btn.innerText = "Contestar Videollamada (Requiere Cámara)";
