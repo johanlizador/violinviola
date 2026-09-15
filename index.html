@@ -305,9 +305,23 @@
       conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'status_waiting' : 'status_error', 'warning'); });
     }
 
+    /* TRUCO PARA DESBLOQUEAR EL AUDIO DE SAFARI EN iPHONE/iPAD */
     function studentJoinClass() {
       if (!joinIdFromUrl) return;
-      getAudioContext().resume().then(() => {
+      
+      const ctx = getAudioContext();
+      ctx.resume().then(() => {
+        
+        // Creamos un sonido súper rápido e inaudible (0 volumen) al hacer clic 
+        // para que iOS nos permita seguir reproduciendo sonidos el resto de la sesión.
+        const unlockOsc = ctx.createOscillator();
+        const unlockGain = ctx.createGain();
+        unlockOsc.connect(unlockGain);
+        unlockGain.connect(ctx.destination);
+        unlockGain.gain.value = 0; 
+        unlockOsc.start(ctx.currentTime);
+        unlockOsc.stop(ctx.currentTime + 0.001);
+
         document.getElementById('student-join-panel').style.display = 'none';
         document.getElementById('main-controls').style.opacity = '1';
         setStatus('status_connecting', 'warning');
