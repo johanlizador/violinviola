@@ -36,6 +36,10 @@
       <!-- Login de Profesor -->
       <div id="teacher-login-panel">
         <h3 style="color: #fff; margin-bottom: 1rem;" data-i18n="login_title">Acceso a Panel de Profesor</h3>
+        <select id="room-choice" class="login-input" style="letter-spacing: 0; text-align: left;">
+          <option value="johann">Johann Díaz</option>
+          <option value="abril">Abril Núñez</option>
+        </select>
         <input type="password" id="teacher-password" class="login-input" placeholder="Clave de acceso" />
         <button class="btn-cta" onclick="authenticateTeacher()" data-i18n="btn_login">Desbloquear Aula</button>
         <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Clave incorrecta.</p>
