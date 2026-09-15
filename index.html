@@ -133,18 +133,61 @@
           <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
         </div>
 
-        <!-- Drones -->
-        <div class="card-inner">
+        <!-- Afinación: LA de referencia + cuerdas al aire + teclado -->
+        <div class="card-inner" id="tuner-card">
           <div class="lock-overlay" id="lock-drone"></div>
           <h4 data-i18n="drone_heading">Drones de Afinación</h4>
-          <div class="drone-grid">
-            <button class="drone-btn" id="drone-C" onclick="toggleDrone(130.81, 'C')">DO</button>
-            <button class="drone-btn" id="drone-G" onclick="toggleDrone(196.00, 'G')">SOL</button>
-            <button class="drone-btn" id="drone-D" onclick="toggleDrone(293.66, 'D')">RE</button>
-            <button class="drone-btn" id="drone-A" onclick="toggleDrone(440.00, 'A')">LA</button>
-            <button class="drone-btn" id="drone-E" onclick="toggleDrone(659.25, 'E')">MI</button>
+
+          <div class="tuner-top">
+            <!-- Calibración del LA -->
+            <div class="tuner-block">
+              <span class="block-caption" data-i18n="calib_label">LA de referencia</span>
+              <div class="calib-row">
+                <button class="calib-step" onclick="changeA4(-1)" aria-label="-1 Hz">−</button>
+                <div class="calib-value"><span id="a4-value">440</span><small>Hz</small></div>
+                <button class="calib-step" onclick="changeA4(1)" aria-label="+1 Hz">+</button>
+              </div>
+              <div class="calib-presets">
+                <button class="preset-btn" data-hz="415" onclick="setA4(415)">415</button>
+                <button class="preset-btn" data-hz="430" onclick="setA4(430)">430</button>
+                <button class="preset-btn" data-hz="440" onclick="setA4(440)">440</button>
+                <button class="preset-btn" data-hz="441" onclick="setA4(441)">441</button>
+                <button class="preset-btn" data-hz="442" onclick="setA4(442)">442</button>
+                <button class="preset-btn" data-hz="443" onclick="setA4(443)">443</button>
+                <button class="preset-btn" data-hz="444" onclick="setA4(444)">444</button>
+              </div>
+            </div>
+
+            <!-- Cuerdas al aire -->
+            <div class="tuner-block">
+              <span class="block-caption" data-i18n="open_strings">Cuerdas al aire</span>
+              <div class="drone-grid">
+                <button class="drone-btn" data-midi="48" onclick="toggleDrone(48)"></button>
+                <button class="drone-btn" data-midi="55" onclick="toggleDrone(55)"></button>
+                <button class="drone-btn" data-midi="62" onclick="toggleDrone(62)"></button>
+                <button class="drone-btn" data-midi="69" onclick="toggleDrone(69)"></button>
+                <button class="drone-btn" data-midi="76" onclick="toggleDrone(76)"></button>
+              </div>
+            </div>
           </div>
-          <button class="tool-btn" style="width: 100%; margin-top: 0.5rem;" onclick="stopDrone()">Detener Afinador</button>
+
+          <!-- Teclado -->
+          <div class="keyboard-bar">
+            <span class="block-caption" data-i18n="keyboard_label">Teclado cromático</span>
+            <div class="octave-controls">
+              <button class="tool-btn octave-btn" onclick="shiftOctave(-1)">−8va</button>
+              <span class="range-label" id="kb-range">—</span>
+              <button class="tool-btn octave-btn" onclick="shiftOctave(1)">+8va</button>
+            </div>
+          </div>
+          <div class="keyboard-scroll">
+            <div class="piano" id="piano"></div>
+          </div>
+
+          <div class="tuner-footer">
+            <div class="now-playing" id="drone-readout">—</div>
+            <button class="tool-btn" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
+          </div>
         </div>
 
       </div>
