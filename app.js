@@ -9,6 +9,7 @@ const translations = {
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
     st_waiting: "Esperando conexión...", st_generating: "Generando sala...", st_wait_student: "Esperando al alumno...", st_ready: "Listo para conectar...", st_connecting: "Conectando con tu profesor...", st_live: "Conectado en vivo", st_student_left: "El alumno se desconectó", st_teacher_left: "Tu profesor se desconectó",
+    err_peer_gone: "No se encontró esa sala. ¿El enlace es el actual?", err_network: "Sin conexión con el servidor de enlace", err_id: "Esa sala ya está en uso", err_browser: "Este navegador no soporta videollamadas", err_generic: "Error de conexión", err_ice: "No se pudo abrir la conexión (falta TURN)",
     lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
@@ -17,6 +18,7 @@ const translations = {
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
     student_hint: "Are you a student? You need the link your teacher sends you.",
     st_waiting: "Waiting for connection...", st_generating: "Creating room...", st_wait_student: "Waiting for the student...", st_ready: "Ready to connect...", st_connecting: "Connecting to your teacher...", st_live: "Live", st_student_left: "The student disconnected", st_teacher_left: "Your teacher disconnected",
+    err_peer_gone: "That room wasn't found. Is the link current?", err_network: "No connection to the signalling server", err_id: "That room is already in use", err_browser: "This browser doesn't support video calls", err_generic: "Connection error", err_ice: "Could not open the connection (TURN needed)",
     lock_badge: "🔒 Your teacher controls this", routing_label: "Where do the metronome and drones play?", routing_local: "On my machine", routing_remote: "On the student's machine", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
@@ -106,9 +108,90 @@ function setStatus(key, state) {
   document.getElementById('status-dot').className = 'dot ' + state;
 }
 
+/* ==========================================================================
+   RED: servidores de STUN y TURN
+   --------------------------------------------------------------------------
+   STUN sólo sirve para descubrir la IP pública. Si una de las dos partes está
+   detrás de NAT de operadora (CGNAT) — lo normal en Venezuela y en muchas redes
+   móviles — los dos navegadores NO consiguen verse y la conexión nunca llega a
+   abrirse, ni siquiera la de datos.
+
+   La solución es un TURN, que retransmite el tráfico por un servidor
+   intermedio. Hace falta uno con credenciales propias:
+
+     1. Cuenta gratis en https://www.metered.ca/tools/openrelay/
+        (20 GB al mes, y funciona por los puertos 80 y 443, que es justo lo que
+         hace falta para atravesar redes restrictivas)
+     2. Copia usuario y contraseña en TURN_USER / TURN_PASS
+
+   Sin esto la clase funcionará entre dos casas con conexión permisiva y
+   fallará justo con quien más lo necesitas.
+   ========================================================================== */
+const TURN_USER = "";   // <-- pegar aquí
+const TURN_PASS = "";   // <-- pegar aquí
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+
+if (TURN_USER && TURN_PASS) {
+  ICE_SERVERS.push(
+    { urls: 'turn:standard.relay.metered.ca:80',            username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turn:standard.relay.metered.ca:80?transport=tcp',  username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turn:standard.relay.metered.ca:443',           username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turns:standard.relay.metered.ca:443?transport=tcp', username: TURN_USER, credential: TURN_PASS }
+  );
+}
+
+function newPeer() {
+  const p = new Peer({ config: { iceServers: ICE_SERVERS } });
+  p.on('error', (err) => onPeerError(err));
+  return p;
+}
+
+/* Hasta ahora no había ningún manejador de errores: si PeerJS fallaba, fallaba
+   en silencio y el profesor se quedaba mirando "Esperando al alumno". */
+function onPeerError(err) {
+  const tipo = err && err.type ? err.type : 'desconocido';
+  const msg = {
+    'peer-unavailable': 'PEER_GONE',
+    'network':          'NET_DOWN',
+    'server-error':     'NET_DOWN',
+    'unavailable-id':   'ID_TAKEN',
+    'browser-incompatible': 'NO_WEBRTC'
+  }[tipo] || 'GENERIC';
+  setStatus({
+    PEER_GONE: 'err_peer_gone', NET_DOWN: 'err_network', ID_TAKEN: 'err_id',
+    NO_WEBRTC: 'err_browser', GENERIC: 'err_generic'
+  }[msg], 'error');
+  showDiagnostic('PeerJS: ' + tipo);
+  console.error('[aula] error de PeerJS:', err);
+}
+
+/* Estado real de la negociación ICE, que es donde falla el CGNAT */
+function watchIce(conn) {
+  const pc = conn && conn.peerConnection;
+  if (!pc) return;
+  pc.oniceconnectionstatechange = () => {
+    showDiagnostic('ICE: ' + pc.iceConnectionState);
+    if (pc.iceConnectionState === 'failed') {
+      setStatus('err_ice', 'error');
+      console.error('[aula] ICE falló: hace falta un servidor TURN.');
+    }
+  };
+}
+
+function showDiagnostic(texto) {
+  const box = document.getElementById('diagnostic');
+  if (!box) return;
+  box.textContent = texto;
+  box.hidden = false;
+}
+
 function initPeerTeacher() {
   setStatus('st_generating', 'warning');
-  peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+  peer = newPeer();
   peer.on('open', (id) => {
     document.getElementById('peer-id-label').innerText = id;
     // Quitamos primero el #hash y luego la query: si no, un '#studio' en la URL
@@ -123,7 +206,7 @@ function initPeerTeacher() {
 
 function initPeerClient() {
   setStatus('st_ready', 'warning');
-  peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+  peer = newPeer();
   peer.on('open', (id) => { document.getElementById('peer-id-label').innerText = "Alumno"; });
   setupCallListener();
 }
@@ -149,6 +232,7 @@ function studentJoinClass() {
 }
 
 function setupConn(conn) {
+  watchIce(conn);
   conn.on('open', () => { 
     setStatus('st_live', 'connected'); 
     if(currentRole === 'teacher') {
