@@ -33,9 +33,9 @@
       <div class="studio-header">
         <span class="status-badge">
           <span class="dot" id="status-dot"></span>
-          <span id="status-text">Esperando conexión...</span>
+          <span id="status-text" data-i18n="st_waiting">Esperando conexión...</span>
         </span>
-        <div style="font-size: 0.85rem; color: var(--text-muted);">
+        <div id="peer-id-block" style="font-size: 0.85rem; color: var(--text-muted);">
           ID: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
         </div>
       </div>
@@ -119,26 +119,49 @@
 
         <!-- Metrónomo -->
         <div class="card-inner">
-          <div class="lock-overlay" id="lock-metro"></div>
-          <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
-          <div class="tempo-display" id="bpm-display">100</div>
-          <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
-          <div style="margin-bottom: 1rem;">
-            <div class="btn-group">
-              <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
-              <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
-              <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
-              <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
-            </div>
+          <div class="card-head">
+            <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
+            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
           </div>
-          <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
+
+          <!-- Lo que ve el alumno: un monitor, no una consola apagada -->
+          <div class="student-monitor">
+            <span class="monitor-caption" data-i18n="mon_tempo">Tempo de la clase</span>
+            <div class="monitor-value"><span id="mon-bpm">100</span><small>BPM</small><em id="mon-ts">4/4</em></div>
+          </div>
+
+          <div class="teacher-controls">
+            <div class="tempo-display" id="bpm-display">100</div>
+            <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
+            <div style="margin-bottom: 1rem;">
+              <div class="btn-group">
+                <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
+                <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
+                <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
+                <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
+              </div>
+            </div>
+            <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
+          </div>
+
+          <!-- Pulso visual: el alumno ve el compás aunque tenga el violín en la barbilla -->
+          <div class="beat-dots" id="beat-dots"></div>
         </div>
 
         <!-- Afinación: LA de referencia + cuerdas al aire + teclado -->
         <div class="card-inner" id="tuner-card">
-          <div class="lock-overlay" id="lock-drone"></div>
-          <h4 data-i18n="drone_heading">Drones de Afinación</h4>
+          <div class="card-head">
+            <h4 data-i18n="drone_heading">Drones de Afinación</h4>
+            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
+          </div>
 
+          <div class="student-monitor">
+            <span class="monitor-caption" data-i18n="mon_pitch">Nota de referencia</span>
+            <div class="monitor-value"><span id="mon-note">—</span></div>
+            <div class="monitor-sub">LA = <span id="mon-a4">440</span> Hz</div>
+          </div>
+
+          <div class="teacher-controls">
           <div class="tuner-top">
             <!-- Calibración del LA -->
             <div class="tuner-block">
@@ -188,6 +211,7 @@
           <div class="tuner-footer">
             <div class="now-playing" id="drone-readout">—</div>
             <button class="tool-btn" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
+          </div>
           </div>
         </div>
 
