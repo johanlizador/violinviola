@@ -392,3 +392,72 @@ footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-a
 }
 .now-playing.idle { color: var(--text-muted); font-weight: 500; }
 .tuner-footer .tool-btn { flex: 0 0 auto; }
+
+
+/* ======== VISTA DEL ALUMNO ======== */
+/* Por defecto manda la vista del profesor: controles visibles, monitor oculto */
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.card-head h4 { margin: 0; }
+
+.lock-badge {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  background: rgba(210, 153, 34, 0.12);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  white-space: nowrap;
+}
+.student-monitor { display: none; }
+
+/* Alumno sin permiso: fuera los controles, entra el monitor */
+.student-locked .teacher-controls { display: none; }
+.student-locked .student-monitor { display: block; }
+.student-locked .lock-badge { display: inline-block; }
+.student-view #peer-id-block { display: none; }
+
+.student-monitor {
+  text-align: center;
+  padding: 1.6rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+.monitor-caption {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+.monitor-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.monitor-value small { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); }
+.monitor-value em { font-style: normal; font-size: 1.3rem; font-weight: 600; color: var(--text-main); }
+.monitor-sub { margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .monitor-value { font-size: 2.2rem; } }
+
+/* Pulso visual del compás */
+.beat-dots { display: flex; justify-content: center; gap: 0.7rem; margin-top: 1.2rem; min-height: 18px; }
+.beat-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #21262d;
+  border: 1px solid var(--border-color);
+  transition: transform 0.08s ease-out, background 0.08s;
+}
+.beat-dot.strong { width: 18px; height: 18px; }
+.beat-dot.on { background: var(--accent-gold); border-color: var(--accent-gold); transform: scale(1.25); }
+.beat-dot.strong.on { box-shadow: 0 0 12px rgba(229, 169, 60, 0.6); }
