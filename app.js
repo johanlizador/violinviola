@@ -474,8 +474,9 @@ async function startVideo() {
 
     if (activeConnection && activeConnection.peer) makeCall(activeConnection.peer);
     if (pendingCall) {
-      pendingCall.answer(localStream);
-      setupCallEvents(pendingCall);
+      currentCall = pendingCall;          // sin esto, videoSender() no encuentra la llamada
+      currentCall.answer(localStream);
+      setupCallEvents(currentCall);
       pendingCall = null;
     }
   } catch(err) {
@@ -506,6 +507,32 @@ function setLocalPlaceholder(visible) {
    track.stop() para soltar el hardware, y al reencender pedir una pista nueva
    y cambiarla en caliente con replaceTrack(), sin renegociar la llamada. */
 
+/* El LED sólo se apaga cuando se detienen TODAS las pistas de vídeo abiertas,
+   estén donde estén: en localStream, en la vista previa del vestíbulo o
+   colgando de un elemento <video>. Una sola que quede viva mantiene el
+   dispositivo encendido. */
+function stopAllVideoTracks() {
+  const streams = new Set();
+  if (localStream) streams.add(localStream);
+  ['local-video', 'lobby-video'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.srcObject) streams.add(el.srcObject);
+  });
+
+  const detenidas = [];
+  streams.forEach(s => s.getVideoTracks().forEach(t => {
+    t.stop();
+    detenidas.push(t.readyState);          // debe quedar en "ended"
+    try { s.removeTrack(t); } catch (e) {}
+  }));
+
+  const lv = document.getElementById('local-video');
+  if (lv) lv.srcObject = localStream;
+  const pv = document.getElementById('lobby-video');
+  if (pv) pv.srcObject = null;
+  return detenidas;
+}
+
 function videoSender() {
   const pc = currentCall && currentCall.peerConnection;
   if (!pc) return null;
@@ -521,14 +548,15 @@ async function toggleCam() {
   try {
     if (isCamOn) {
       // ---- Apagar: soltar el hardware ----
-      const sender = videoSender();
-      if (sender) await sender.replaceTrack(null);      // el otro lado ve congelado/negro
-      localStream.getVideoTracks().forEach(track => {
-        track.stop();                                   // aquí se apaga el LED
-        localStream.removeTrack(track);
-      });
-      document.getElementById('local-video').srcObject = localStream;
+      // Primero se detiene, pase lo que pase después. Antes iba detrás del
+      // replaceTrack: si ese fallaba, saltaba al catch y la cámara seguía viva.
+      const detenidas = stopAllVideoTracks();
+      showDiagnostic('cámara: ' + (detenidas.join(', ') || 'sin pistas'));
       isCamOn = false;
+      try {
+        const sender = videoSender();
+        if (sender) await sender.replaceTrack(null);    // el otro ve "cámara apagada"
+      } catch (e) { console.warn('[aula] replaceTrack(null):', e); }
       sendPeerMessage({ type: 'CAM_STATE', on: false });
 
     } else {
