@@ -46,7 +46,7 @@ function toggleLanguage() {
   currentLang = currentLang === 'es' ? 'en' : 'es';
   applyLanguage(currentLang);
   updateMediaButtonsText();
-  buildKeyboard();          // DO RE MI  <->  C D E
+  buildKeyboard();
   refreshStringLabels();
   updateDroneReadout();
 }
@@ -66,15 +66,12 @@ let hasJoined = false;
 function getJoinId() {
   const fromQuery = new URLSearchParams(window.location.search).get('join');
   if (fromQuery) return fromQuery;
-  // Rescate de enlaces antiguos del tipo  .../index.html#studio?join=ID
   const hash = window.location.hash;
   const q = hash.indexOf('?');
   if (q !== -1) return new URLSearchParams(hash.slice(q)).get('join');
   return null;
 }
 
-/* "Entrar al Aula": para el alumno no es sólo bajar la página, es conectarse.
-   Además el clic sirve de gesto para desbloquear el audio del navegador. */
 function enterStudio() {
   const studio = document.getElementById('studio');
   if (studio) studio.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -97,7 +94,7 @@ function initSystem() {
     document.getElementById('teacher-login-panel').style.display = 'none';
     document.getElementById('student-lobby').style.display = 'block';
     document.getElementById('main-controls').style.display = 'grid'; 
-    lockStudentInterface(true); // Bloquea botones de metrónomo/drone
+    lockStudentInterface(true);
     initPeerClient();
   } else {
     document.getElementById('teacher-login-panel').style.display = 'block';
@@ -128,28 +125,8 @@ function setStatus(key, state) {
   document.getElementById('status-dot').className = 'dot ' + state;
 }
 
-/* ==========================================================================
-   RED: servidores de STUN y TURN
-   --------------------------------------------------------------------------
-   STUN sólo sirve para descubrir la IP pública. Si una de las dos partes está
-   detrás de NAT de operadora (CGNAT) — lo normal en Venezuela y en muchas redes
-   móviles — los dos navegadores NO consiguen verse y la conexión nunca llega a
-   abrirse, ni siquiera la de datos.
-
-   La solución es un TURN, que retransmite el tráfico por un servidor
-   intermedio. Hace falta uno con credenciales propias:
-
-     1. Cuenta gratis en https://www.metered.ca/tools/openrelay/
-        (20 GB al mes, y funciona por los puertos 80 y 443, que es justo lo que
-         hace falta para atravesar redes restrictivas)
-     2. Copia usuario y contraseña en TURN_USER / TURN_PASS
-
-   Sin esto la clase funcionará entre dos casas con conexión permisiva y
-   fallará justo con quien más lo necesitas.
-   ========================================================================== */
-const TURN_USER = "";   // <-- pegar aquí
-const TURN_PASS = "";   // <-- pegar aquí
-
+const TURN_USER = "";
+const TURN_PASS = "";
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' }
@@ -164,9 +141,6 @@ if (TURN_USER && TURN_PASS) {
   );
 }
 
-/* Salas fijas: el enlace de cada profesor es SIEMPRE el mismo.
-   Antes se generaba un ID al azar en cada carga, así que bastaba recargar la
-   página para que el enlace ya enviado dejara de existir (peer-unavailable). */
 const ROOMS = {
   johann: 'dnstudio-johann-aula',
   abril:  'dnstudio-abril-aula'
@@ -176,26 +150,18 @@ function newPeer(fixedId) {
   const p = fixedId
     ? new Peer(fixedId, { config: { iceServers: ICE_SERVERS } })
     : new Peer({ config: { iceServers: ICE_SERVERS } });
-  // El servidor de enlace corta las sesiones inactivas; al reconectar se
-  // recupera el MISMO id, así que el enlace del alumno sigue sirviendo.
   p.on('disconnected', () => { if (!p.destroyed) { showDiagnostic('reconectando...'); p.reconnect(); } });
   p.on('error', (err) => onPeerError(err));
   return p;
 }
 
-/* Hasta ahora no había ningún manejador de errores: si PeerJS fallaba, fallaba
-   en silencio y el profesor se quedaba mirando "Esperando al alumno". */
 let joinAttempts = 0;
-
 function onPeerError(err) {
   const tipo = err && err.type ? err.type : 'desconocido';
-
-  // El alumno llegó antes de que el profesor abriera el aula: reintentamos
   if (tipo === 'peer-unavailable' && currentRole === 'student') {
     showDiagnostic('PeerJS: peer-unavailable');
     return retryJoin();
   }
-  // El profesor tiene otra pestaña abierta con la misma sala
   if (tipo === 'unavailable-id' && currentRole === 'teacher') {
     setStatus('err_id', 'error');
     showDiagnostic('PeerJS: unavailable-id');
@@ -213,10 +179,8 @@ function onPeerError(err) {
     NO_WEBRTC: 'err_browser', GENERIC: 'err_generic'
   }[msg], 'error');
   showDiagnostic('PeerJS: ' + tipo);
-  console.error('[aula] error de PeerJS:', err);
 }
 
-/* El aula puede abrirse después que el alumno: insistir es lo correcto */
 function retryJoin() {
   if (joinAttempts >= 4) {
     hasJoined = false;
@@ -240,7 +204,6 @@ function retryJoin() {
   }, 4000);
 }
 
-/* Estado real de la negociación ICE, que es donde falla el CGNAT */
 function watchIce(conn) {
   const pc = conn && conn.peerConnection;
   if (!pc) return;
@@ -248,7 +211,6 @@ function watchIce(conn) {
     showDiagnostic('ICE: ' + pc.iceConnectionState);
     if (pc.iceConnectionState === 'failed') {
       setStatus('err_ice', 'error');
-      console.error('[aula] ICE falló: hace falta un servidor TURN.');
     }
   };
 }
@@ -265,8 +227,6 @@ function initPeerTeacher(roomId) {
   peer = newPeer(roomId);
   peer.on('open', (id) => {
     document.getElementById('peer-id-label').innerText = id;
-    // Quitamos primero el #hash y luego la query: si no, un '#studio' en la URL
-    // del profesor dejaba el '?join=' dentro del hash y el alumno nunca lo veía.
     const base = window.location.href.split('#')[0].split('?')[0];
     document.getElementById('student-link-input').value = base + '?join=' + id + '#studio';
     setStatus('st_wait_student', 'warning');
@@ -282,22 +242,29 @@ function initPeerClient() {
   setupCallListener();
 }
 
-/* ==========================================================================
-   ENTRADA DEL ALUMNO
-   Una sola puerta: nombre, prueba opcional de cámara, y un botón que activa
-   audio, pide permisos, conecta y arranca el video en un mismo gesto.
-   ========================================================================== */
+/* MÉTODO AUXILIAR PARA PREVENIR FALLOS DE HARDWARE AL INICIAR LA CÁMARA/MICRÓFONO */
+async function getReliableMediaStream(videoEnabled) {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: videoEnabled,
+      audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+    });
+  } catch (err) {
+    console.warn('[aula] Las restricciones para música fallaron, forzando audio estándar:', err);
+    return await navigator.mediaDevices.getUserMedia({
+      video: videoEnabled,
+      audio: true // Fallback a un micrófono estándar si el navegador bloquea las restricciones crudas
+    });
+  }
+}
+
 let studentName = '';
 let micMeterRAF = null;
 
-/* Prueba de cámara y micrófono antes de que el profesor lo vea */
 async function prepareMedia() {
   try {
     if (!localStream) {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
-      });
+      localStream = await getReliableMediaStream(true);
     }
     const prev = document.getElementById('lobby-video');
     if (prev) {
@@ -315,14 +282,13 @@ async function prepareMedia() {
   }
 }
 
-/* Una barra que se mueve dice más que "micrófono activo" */
 function startMicMeter() {
   if (micMeterRAF || !localStream) return;
   const ctx = getAudioContext();
   const source = ctx.createMediaStreamSource(localStream);
   const analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
-  source.connect(analyser);           // no se conecta a destination: no se oye a sí mismo
+  source.connect(analyser);
   const datos = new Uint8Array(analyser.frequencyBinCount);
   const barra = document.getElementById('mic-level');
   const meter = document.getElementById('mic-meter');
@@ -343,7 +309,6 @@ function stopMicMeter() {
   micMeterRAF = null;
 }
 
-/* Un permiso denegado se recuerda: hay que explicar cómo revertirlo */
 function showPermissionHelp(err) {
   const caja = document.getElementById('permission-help');
   const pasos = document.getElementById('perm-steps');
@@ -359,7 +324,6 @@ function showPermissionHelp(err) {
 
   pasos.innerText = translations[currentLang][clave];
   caja.hidden = false;
-  console.error('[aula] permisos:', err && err.name, err);
 }
 
 async function studentEnterClass() {
@@ -374,11 +338,10 @@ async function studentEnterClass() {
     return;
   }
 
-  // El mismo clic desbloquea el audio del navegador
   const ctx = getAudioContext();
   await ctx.resume();
 
-  if (!await prepareMedia()) return;   // sin permisos no se entra: ya se explicó por qué
+  if (!await prepareMedia()) return;
 
   hasJoined = true;
   stopMicMeter();
@@ -386,7 +349,6 @@ async function studentEnterClass() {
   keepScreenAwake();
   setStatus('st_connecting', 'warning');
 
-  // Video listo desde el primer segundo, sin segundo botón
   const localVid = document.getElementById('local-video');
   localVid.srcObject = localStream;
   localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
@@ -402,7 +364,6 @@ async function studentEnterClass() {
   if (peer && peer.open) doConnect(); else peer.on('open', doConnect);
 }
 
-/* La pantalla no debe apagarse con el instrumento en las manos */
 let wakeLock = null;
 async function keepScreenAwake() {
   try {
@@ -410,7 +371,7 @@ async function keepScreenAwake() {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
     }
-  } catch (e) { /* no es crítico */ }
+  } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !wakeLock && hasJoined) keepScreenAwake();
@@ -421,9 +382,12 @@ function setupConn(conn) {
   conn.on('open', () => { 
     setStatus('st_live', 'connected'); 
     if(currentRole === 'teacher') {
-      sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
-      sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
-      pushToolStateToPeer();
+      // Retraso añadido para evitar colisión si el alumno no ha cargado los listener de datos aún
+      setTimeout(() => {
+          sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
+          sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
+          pushToolStateToPeer();
+      }, 500); 
     }
     if (currentRole === 'student' && studentName) sendPeerMessage({ type: 'HELLO', name: studentName });
     if (localStream && !isCamOn) sendPeerMessage({ type: 'CAM_STATE', on: false });
@@ -433,7 +397,12 @@ function setupConn(conn) {
   conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
 }
 
-function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
+function sendPeerMessage(msg) { 
+    if (activeConnection) {
+        activeConnection.send(msg); 
+    }
+}
+
 function copyStudentLink(btn) {
   const input = document.getElementById('student-link-input');
   const feedback = () => {
@@ -450,9 +419,6 @@ function copyStudentLink(btn) {
   }
 }
 
-/* ----------------------------------------------------
-   LÓGICA DE VIDEO, PANTALLA COMPLETA Y ARRASTRE
-   ---------------------------------------------------- */
 let localStream = null;
 let currentCall = null;
 let pendingCall = null;
@@ -466,10 +432,7 @@ async function startVideo() {
   btn.innerText = translations[currentLang].vid_starting;
 
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({ 
-      video: true, 
-      audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } 
-    });
+    localStream = await getReliableMediaStream(true);
 
     const localVid = document.getElementById('local-video');
     localVid.srcObject = localStream;
@@ -478,12 +441,11 @@ async function startVideo() {
     setLocalPlaceholder(false);
     btn.style.display = 'none'; 
     
-    // Revelar la interfaz de videollamada
     document.getElementById('video-conference-container').style.display = 'flex';
 
     if (activeConnection && activeConnection.peer) makeCall(activeConnection.peer);
     if (pendingCall) {
-      currentCall = pendingCall;          // sin esto, videoSender() no encuentra la llamada
+      currentCall = pendingCall;          
       currentCall.answer(localStream);
       setupCallEvents(currentCall);
       pendingCall = null;
@@ -509,17 +471,6 @@ function setLocalPlaceholder(visible) {
   if (ph) ph.style.display = visible ? 'flex' : 'none';
 }
 
-/* Apagar la cámara de verdad.
-   track.enabled = false sólo deja de enviar fotogramas: el dispositivo sigue
-   abierto y el LED del portátil sigue encendido, que es exactamente lo que no
-   quieres cuando le dices a un alumno que apagaste la cámara. Hay que llamar a
-   track.stop() para soltar el hardware, y al reencender pedir una pista nueva
-   y cambiarla en caliente con replaceTrack(), sin renegociar la llamada. */
-
-/* El LED sólo se apaga cuando se detienen TODAS las pistas de vídeo abiertas,
-   estén donde estén: en localStream, en la vista previa del vestíbulo o
-   colgando de un elemento <video>. Una sola que quede viva mantiene el
-   dispositivo encendido. */
 function stopAllVideoTracks() {
   const streams = new Set();
   if (localStream) streams.add(localStream);
@@ -531,7 +482,7 @@ function stopAllVideoTracks() {
   const detenidas = [];
   streams.forEach(s => s.getVideoTracks().forEach(t => {
     t.stop();
-    detenidas.push(t.readyState);          // debe quedar en "ended"
+    detenidas.push(t.readyState);
     try { s.removeTrack(t); } catch (e) {}
   }));
 
@@ -542,11 +493,6 @@ function stopAllVideoTracks() {
   return detenidas;
 }
 
-/* Si la llamada se creó mientras la cámara estaba apagada, el stream no tenía
-   pista de vídeo y la negociación salió SIN vídeo: no existe ningún emisor al
-   que engancharle la pista nueva, y ninguno de los dos se ve nunca más aunque
-   el audio siga perfecto. En ese caso no basta con replaceTrack: hay que
-   rehacer la llamada para que se negocie el vídeo desde cero. */
 async function ensureVideoNegotiated(pista) {
   const sender = videoSender();
   if (sender) {
@@ -555,7 +501,7 @@ async function ensureVideoNegotiated(pista) {
   }
   const remoto = (currentCall && currentCall.peer)
               || (activeConnection && activeConnection.peer);
-  if (!remoto) return;                      // aún no hay nadie al otro lado
+  if (!remoto) return;
   showDiagnostic('renegociando vídeo...');
   try { if (currentCall) currentCall.close(); } catch (e) {}
   currentCall = null;
@@ -566,7 +512,7 @@ function videoSender() {
   const pc = currentCall && currentCall.peerConnection;
   if (!pc) return null;
   return pc.getSenders().find(s => s.track && s.track.kind === 'video')
-      || pc.getSenders().find(s => !s.track);   // hueco libre tras apagarla
+      || pc.getSenders().find(s => !s.track);
 }
 
 async function toggleCam() {
@@ -576,21 +522,17 @@ async function toggleCam() {
 
   try {
     if (isCamOn) {
-      // ---- Apagar: soltar el hardware ----
-      // Primero se detiene, pase lo que pase después. Antes iba detrás del
-      // replaceTrack: si ese fallaba, saltaba al catch y la cámara seguía viva.
       const detenidas = stopAllVideoTracks();
       showDiagnostic('cámara: ' + (detenidas.join(', ') || 'sin pistas'));
       isCamOn = false;
       try {
         const sender = videoSender();
-        if (sender) await sender.replaceTrack(null);    // el otro ve "cámara apagada"
-      } catch (e) { console.warn('[aula] replaceTrack(null):', e); }
+        if (sender) await sender.replaceTrack(null);
+      } catch (e) {}
       sendPeerMessage({ type: 'CAM_STATE', on: false });
 
     } else {
-      // ---- Encender: pista nueva, sin renegociar ----
-      const fresca = await navigator.mediaDevices.getUserMedia({ video: true });
+      const fresca = await getReliableMediaStream(true);
       const pista = fresca.getVideoTracks()[0];
       localStream.addTrack(pista);
       const localVid = document.getElementById('local-video');
@@ -602,7 +544,6 @@ async function toggleCam() {
       sendPeerMessage({ type: 'CAM_STATE', on: true });
     }
   } catch (err) {
-    console.error('[aula] no se pudo cambiar la cámara:', err);
     showPermissionHelp(err);
   }
 
@@ -612,7 +553,6 @@ async function toggleCam() {
   updateMediaButtonsText();
 }
 
-/* Al salir del aula hay que soltar cámara y micrófono igualmente */
 function releaseMedia() {
   if (localStream) localStream.getTracks().forEach(t => t.stop());
   if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
@@ -626,7 +566,6 @@ function toggleViewLayout() {
   if (container.classList.contains('pip-mode')) {
     container.classList.remove('pip-mode');
     container.classList.add('gallery-mode');
-    // Reiniciar estilos de arrastre
     localBox.style.top = ''; localBox.style.left = ''; localBox.style.right = ''; localBox.style.bottom = '';
   } else {
     container.classList.remove('gallery-mode');
@@ -645,9 +584,6 @@ function updateMediaButtonsText() {
   if(fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
 }
 
-/* --- Pantalla Completa ---
-   iPhone no implementa la API de pantalla completa sobre elementos que no sean
-   <video>, así que ahí caemos a una pantalla completa simulada con CSS. */
 function nativeFullscreenAvailable(el) {
   return !!(el.requestFullscreen || el.webkitRequestFullscreen);
 }
@@ -657,7 +593,7 @@ function fullscreenActive(el) {
 }
 
 function enterFauxFullscreen(el) {
-  resetLocalBoxPosition();           // si venía arrastrado, podría quedar fuera de vista
+  resetLocalBoxPosition();
   el.classList.add('faux-fullscreen');
   document.body.classList.add('fs-lock');
   isFullScreen = true;
@@ -680,13 +616,11 @@ function resetLocalBoxPosition() {
 
 function toggleFullScreen() {
   const container = document.getElementById('video-conference-container');
-
   if (!fullscreenActive(container)) {
     if (nativeFullscreenAvailable(container)) {
       const req = container.requestFullscreen
         ? container.requestFullscreen()
         : container.webkitRequestFullscreen();
-      // Algunos navegadores rechazan la promesa: ahí también caemos al modo simulado
       if (req && typeof req.catch === 'function') req.catch(() => enterFauxFullscreen(container));
     } else {
       enterFauxFullscreen(container);
@@ -702,7 +636,6 @@ function toggleFullScreen() {
   updateMediaButtonsText();
 }
 
-// Escape también sale del modo simulado
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   const container = document.getElementById('video-conference-container');
@@ -718,7 +651,6 @@ function onFullScreenChange() {
 document.addEventListener('fullscreenchange', onFullScreenChange);
 document.addEventListener('webkitfullscreenchange', onFullScreenChange);
 
-/* --- Lógica de Arrastre para PiP (Picture in Picture) --- */
 const localBox = document.getElementById('draggable-local');
 let isDragging = false;
 let offsetX, offsetY;
@@ -735,23 +667,20 @@ function startDrag(e) {
 
 function drag(e) {
   if (!isDragging) return;
-  e.preventDefault(); // Evita scroll en móviles al arrastrar
-  
+  e.preventDefault();
   const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
   const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-  
   const gridLayout = document.getElementById('video-grid').getBoundingClientRect();
   
   let x = clientX - gridLayout.left - offsetX;
   let y = clientY - gridLayout.top - offsetY;
 
-  // Limitar para que no se salga de la pantalla negra
   x = Math.max(0, Math.min(x, gridLayout.width - localBox.offsetWidth));
   y = Math.max(0, Math.min(y, gridLayout.height - localBox.offsetHeight));
 
   localBox.style.left = x + 'px';
   localBox.style.top = y + 'px';
-  localBox.style.bottom = 'auto'; // Elimina la posición por defecto del CSS
+  localBox.style.bottom = 'auto';
   localBox.style.right = 'auto';
 }
 
@@ -764,7 +693,6 @@ document.addEventListener('touchmove', drag, {passive: false});
 document.addEventListener('mouseup', stopDrag);
 document.addEventListener('touchend', stopDrag);
 
-/* --- Conexión de Llamadas --- */
 function makeCall(remoteId) {
   if (!localStream) return;
   currentCall = peer.call(remoteId, localStream);
@@ -775,14 +703,14 @@ function setupCallListener() {
   peer.on('call', (call) => {
     if (localStream) {
       try { if (currentCall && currentCall !== call) currentCall.close(); } catch (e) {}
-      currentCall = call;                  // también al contestar, no sólo al llamar
+      currentCall = call;                  
       call.answer(localStream);
       setupCallEvents(call);
     } else {
       pendingCall = call;
       const btn = document.getElementById('btn-start-video');
       if (!btn) return;
-      btn.removeAttribute('data-i18n'); // que applyLanguage no lo pise
+      btn.removeAttribute('data-i18n');
       btn.innerText = translations[currentLang].btn_answer_call;
       btn.style.background = "var(--success)";
       btn.style.borderColor = "var(--success)";
@@ -793,10 +721,13 @@ function setupCallListener() {
 function setupCallEvents(call) {
   call.on('stream', (remoteStream) => {
     const remoteVid = document.getElementById('remote-video');
-    remoteVid.srcObject = remoteStream;
-    document.getElementById('remote-placeholder').style.display = 'none';
     
-    // Forzar la reproducción para navegadores estrictos (Safari/iOS)
+    remoteVid.srcObject = null;
+    remoteVid.srcObject = remoteStream;
+    remoteVid.muted = false;
+    remoteVid.volume = 1.0; 
+    
+    document.getElementById('remote-placeholder').style.display = 'none';
     remoteVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
   });
   call.on('close', () => {
@@ -805,7 +736,6 @@ function setupCallEvents(call) {
   });
 }
 
-/* 4. BLOQUEOS Y PERMISOS BIDIRECCIONALES */
 function toggleStudentPermissions() {
   isStudentAllowed = !isStudentAllowed;
   const btn = document.getElementById('btn-toggle-student-auth');
@@ -820,17 +750,12 @@ function toggleStudentPermissions() {
 }
 
 function lockStudentInterface(lock) {
-  // El alumno bloqueado no ve los controles desactivados: ve un monitor de la clase
   document.body.classList.toggle('student-locked', lock);
 }
 
-/* 5. AUDIO (METRÓNOMO Y AFINADOR) */
 let audioCtx = null; let isPlaying = false; let bpm = 100; let beatsPerBar = 4; let currentBeat = 0; let nextNoteTime = 0.0; let timerID = null;
 function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 
-/* Metrónomo y drones pasan por un bus propio, así el profesor puede silenciarlos
-   en su equipo sin dejar de mandárselos al alumno (y sin meter el clic por su
-   micrófono, que era la causa del eco). */
 let toolsBus = null;
 let localAudioOn = true;
 let remoteAudioOn = true;
@@ -854,7 +779,6 @@ function setLocalAudio(on) {
   bus.gain.linearRampToValueAtTime(on ? 1 : 0, t + 0.04);
 }
 
-/* El alumno no oye nada porque no le llegan los mensajes, no porque le baje el volumen */
 function sendToolMessage(msg) {
   if (currentRole === 'teacher' && !remoteAudioOn) return;
   sendPeerMessage(msg);
@@ -869,7 +793,6 @@ function pushToolStateToPeer() {
 function setRemoteAudio(on) {
   remoteAudioOn = on;
   if (currentRole !== 'teacher') return;
-  // Al mover el interruptor hay que poner al alumno al día, no esperar al próximo clic
   if (on) pushToolStateToPeer();
   else { sendPeerMessage({ type: 'METRO_STOP' }); sendPeerMessage({ type: 'DRONE_STOP' }); }
 }
@@ -891,8 +814,6 @@ function markBeat(n) {
   document.querySelectorAll('.beat-dot').forEach((d, i) => d.classList.toggle('on', i === n));
 }
 
-/* El clic se agenda con antelación, así que la luz se dispara cuando
-   el audio realmente suena, no cuando se programó. */
 function beatLoop() {
   if (audioCtx) {
     let ultimo = -1;
@@ -950,8 +871,8 @@ function setTimeSignature(sig, broadcast = true) {
 }
 
 let droneOsc = null; let droneGain = null; let currentDroneMidi = null;
-let a4 = 440;                 // LA de referencia en Hz
-let kbStart = 48;             // nota más grave del teclado (48 = DO3)
+let a4 = 440;                 
+let kbStart = 48;             
 const KB_OCTAVES = 3;
 const BLACK_PCS = [1, 3, 6, 8, 10];
 const NOTE_NAMES = {
@@ -959,19 +880,16 @@ const NOTE_NAMES = {
   en: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 };
 
-/* Todo se calcula desde el LA de referencia: si cambia a 442, cambia todo. */
 function midiToFreq(midi) { return a4 * Math.pow(2, (midi - 69) / 12); }
 function noteName(midi) { return NOTE_NAMES[currentLang][((midi % 12) + 12) % 12]; }
 function octaveOf(midi) { return Math.floor(midi / 12) - 1; }
 function noteLabel(midi) { return noteName(midi) + octaveOf(midi); }
 
-/* --- Calibración del LA --- */
 function setA4(value, broadcast = true) {
   a4 = Math.min(466, Math.max(415, Math.round(value)));
   document.getElementById('a4-value').innerText = a4;
   document.getElementById('mon-a4').innerText = a4;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.hz) === a4));
-  // Si hay un dron sonando, se reafina en vivo (sin cortes)
   if (droneOsc && currentDroneMidi !== null && audioCtx) {
     droneOsc.frequency.linearRampToValueAtTime(midiToFreq(currentDroneMidi), audioCtx.currentTime + 0.06);
   }
@@ -980,12 +898,6 @@ function setA4(value, broadcast = true) {
 }
 function changeA4(delta) { setA4(a4 + delta); }
 
-/* --- Teclado --- */
-/* En un piano real las negras NO están centradas sobre la juntura de las
-   blancas: dentro de cada grupo las colas de las blancas miden lo mismo, lo que
-   empuja el DO# hacia la izquierda, el RE# hacia la derecha y deja el SOL#
-   centrado. Estos son los bordes izquierdos, medidos en anchos de tecla blanca
-   desde el DO de la octava (una negra mide 0.6 de una blanca). */
 const BLACK_OFFSETS = { 1: 0.60, 3: 1.80, 6: 3.55, 8: 4.70, 10: 5.85 };
 
 function buildKeyboard() {
@@ -998,7 +910,7 @@ function buildKeyboard() {
   const bed = document.createElement('div');
   bed.className = 'keybed';
 
-  const last = kbStart + KB_OCTAVES * 12;           // incluye el DO superior
+  const last = kbStart + KB_OCTAVES * 12;           
   const whites = [];
   for (let m = kbStart; m <= last; m++) if (!BLACK_PCS.includes(m % 12)) whites.push(m);
   bed.style.setProperty('--white-count', whites.length);
@@ -1028,13 +940,12 @@ function makeKey(midi, type) {
   key.title = noteLabel(midi) + ' · ' + midiToFreq(midi).toFixed(1) + ' Hz';
   key.onclick = () => toggleDrone(midi);
 
-  const face = document.createElement('span');   // superficie superior de la tecla
+  const face = document.createElement('span');   
   face.className = 'key-face';
-  const front = document.createElement('span');  // canto frontal, el que mira al intérprete
+  const front = document.createElement('span');  
   front.className = 'key-front';
   const label = document.createElement('span');
   label.className = 'key-label';
-  // Sólo etiquetamos las blancas; los DO llevan además el número de octava
   label.innerText = type === 'white' ? (midi % 12 === 0 ? noteLabel(midi) : noteName(midi)) : '';
 
   key.appendChild(face);
@@ -1050,7 +961,6 @@ function shiftOctave(delta) {
   buildKeyboard();
 }
 
-/* Si el profesor toca algo fuera de la vista del alumno, la desplazamos */
 function ensureKeyVisible(midi) {
   const last = kbStart + KB_OCTAVES * 12;
   if (midi >= kbStart && midi <= last) return;
@@ -1060,7 +970,6 @@ function ensureKeyVisible(midi) {
   if (next !== kbStart) { kbStart = next; buildKeyboard(); }
 }
 
-/* --- Estado visual --- */
 function refreshDroneHighlights() {
   document.querySelectorAll('.key, .drone-btn').forEach(el => {
     el.classList.toggle('playing', parseInt(el.dataset.midi) === currentDroneMidi);
@@ -1092,7 +1001,6 @@ function updateDroneReadout() {
   refreshStringLabels();
 }
 
-/* --- Motor de sonido --- */
 function toggleDrone(midi, broadcast = true) {
   getAudioContext();
   if (currentDroneMidi === midi) { stopDrone(broadcast); return; }
@@ -1113,8 +1021,6 @@ function toggleDrone(midi, broadcast = true) {
 }
 
 function stopDrone(broadcast = true) {
-  // Guardamos referencias locales: si no, el setTimeout apagaba el oscilador
-  // nuevo cuando se cambiaba de una nota a otra.
   const osc = droneOsc, gain = droneGain;
   droneOsc = null; droneGain = null; currentDroneMidi = null;
 
@@ -1131,12 +1037,22 @@ function stopDrone(broadcast = true) {
   if (broadcast) sendToolMessage({ type: 'DRONE_STOP' });
 }
 
-/* 6. MANEJO DE MENSAJES RECIBIDOS */
+/* MANEJO DE MENSAJES CON REACTIVACIÓN DE AUDIO Y VERIFICACIÓN */
 function handleData(data) {
+  // Aseguramos que el navegador del alumno no ponga el metrónomo a "dormir"
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(e => console.warn('No se pudo reanudar AudioContext:', e));
+  }
+
   if (data.type === 'PERMISSIONS') {
     if(currentRole === 'student') lockStudentInterface(!data.allowed);
   }
-  else if (data.type === 'METRO_START') { bpm = data.bpm; beatsPerBar = data.beatsPerBar; onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); if(!isPlaying) toggleMetronome(false); }
+  else if (data.type === 'METRO_START') { 
+      bpm = data.bpm; beatsPerBar = data.beatsPerBar; 
+      onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); 
+      if(!isPlaying) toggleMetronome(false); 
+  }
   else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
   else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
   else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
