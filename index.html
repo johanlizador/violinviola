@@ -72,6 +72,23 @@
             </button>
           </div>
         </div>
+
+        <!-- Enrutado del audio de las herramientas -->
+        <div class="audio-routing">
+          <span class="block-caption" data-i18n="routing_label">¿Dónde suenan el metrónomo y los drones?</span>
+          <div class="routing-switches">
+            <label class="switch">
+              <input type="checkbox" id="sw-local-audio" checked onchange="setLocalAudio(this.checked)" />
+              <span class="switch-track"></span>
+              <span class="switch-text" data-i18n="routing_local">En mi equipo</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="sw-remote-audio" checked onchange="setRemoteAudio(this.checked)" />
+              <span class="switch-track"></span>
+              <span class="switch-text" data-i18n="routing_remote">En el equipo del alumno</span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div style="height: 1.5rem;"></div>
