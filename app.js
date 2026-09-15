@@ -5,11 +5,13 @@ let isStudentAllowed = false;
 const translations = {
   es: { 
     nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación", video_heading: "Videollamada Integrada", video_hint: "⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.", btn_start_video: "Encender Cámara y Micrófono", vid_local_wait: "Tu cámara está apagada", vid_remote_wait: "Esperando a que el otro participante encienda su cámara...", vid_remote: "Remoto", 
-    btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista"
+    btn_mute: "Silenciar", btn_unmute: "Activar Audio", btn_cam_off: "Apagar Cámara", btn_cam_on: "Encender Cámara", btn_fullscreen: "Pantalla Completa", btn_exit_fullscreen: "Salir Pantalla", btn_layout: "Cambiar Vista",
+    vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones", video_heading: "Integrated Video Call", video_hint: "⚠️ Required: Student must wear headphones to prevent metronome echo.", btn_start_video: "Turn on Camera & Mic", vid_local_wait: "Your camera is off", vid_remote_wait: "Waiting for the other participant to turn on their camera...", vid_remote: "Remote",
-    btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View"
+    btn_mute: "Mute", btn_unmute: "Unmute", btn_cam_off: "Stop Video", btn_cam_on: "Start Video", btn_fullscreen: "Full Screen", btn_exit_fullscreen: "Exit Screen", btn_layout: "Change View",
+    vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy"
   }
 };
 
@@ -91,8 +93,12 @@ function studentJoinClass() {
 
     document.getElementById('student-join-panel').style.display = 'none';
     setStatus("Conectando con profesor...", "warning");
-    const conn = peer.connect(joinIdFromUrl);
-    activeConnection = conn; setupConn(conn);
+    const doConnect = () => {
+      const conn = peer.connect(joinIdFromUrl);
+      activeConnection = conn; setupConn(conn);
+    };
+    // Si el alumno pulsa antes de que PeerJS termine de registrarse, esperamos
+    if (peer && peer.open) doConnect(); else peer.on('open', doConnect);
   });
 }
 
@@ -107,7 +113,21 @@ function setupConn(conn) {
 }
 
 function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
-function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
+function copyStudentLink(btn) {
+  const input = document.getElementById('student-link-input');
+  const feedback = () => {
+    if (!btn) return;
+    btn.innerText = translations[currentLang].copy_ok;
+    setTimeout(() => { btn.innerText = translations[currentLang].copy_label; }, 1500);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(input.value).then(feedback).catch(() => {
+      input.select(); document.execCommand('copy'); feedback();
+    });
+  } else {
+    input.select(); input.setSelectionRange(0, 99999); document.execCommand('copy'); feedback();
+  }
+}
 
 /* ----------------------------------------------------
    LÓGICA DE VIDEO, PANTALLA COMPLETA Y ARRASTRE
@@ -122,7 +142,7 @@ let isFullScreen = false;
 async function startVideo() {
   const btn = document.getElementById('btn-start-video');
   btn.disabled = true;
-  btn.innerText = "Accediendo a cámara...";
+  btn.innerText = translations[currentLang].vid_starting;
 
   try {
     localStream = await navigator.mediaDevices.getUserMedia({ 
@@ -131,7 +151,7 @@ async function startVideo() {
     });
 
     document.getElementById('local-video').srcObject = localStream;
-    document.getElementById('local-placeholder').style.display = 'none';
+    setLocalPlaceholder(false);
     btn.style.display = 'none'; 
     
     // Revelar la interfaz de videollamada
@@ -159,11 +179,17 @@ function toggleMic() {
   updateMediaButtonsText();
 }
 
+function setLocalPlaceholder(visible) {
+  const ph = document.getElementById('local-placeholder');
+  if (ph) ph.style.display = visible ? 'flex' : 'none';
+}
+
 function toggleCam() {
   if (!localStream) return;
   isCamOn = !isCamOn;
   localStream.getVideoTracks().forEach(track => track.enabled = isCamOn);
   document.getElementById('btn-toggle-cam').classList.toggle('disabled', !isCamOn);
+  setLocalPlaceholder(!isCamOn);
   updateMediaButtonsText();
 }
 
@@ -196,7 +222,7 @@ function updateMediaButtonsText() {
 /* --- Pantalla Completa --- */
 function toggleFullScreen() {
   const container = document.getElementById('video-conference-container');
-  if (!document.fullscreenElement) {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     if (container.requestFullscreen) container.requestFullscreen();
     else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen(); // Safari
     isFullScreen = true;
@@ -208,10 +234,12 @@ function toggleFullScreen() {
   updateMediaButtonsText();
 }
 
-document.addEventListener('fullscreenchange', () => {
-    isFullScreen = !!document.fullscreenElement;
-    updateMediaButtonsText();
-});
+function onFullScreenChange() {
+  isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  updateMediaButtonsText();
+}
+document.addEventListener('fullscreenchange', onFullScreenChange);
+document.addEventListener('webkitfullscreenchange', onFullScreenChange);
 
 /* --- Lógica de Arrastre para PiP (Picture in Picture) --- */
 const localBox = document.getElementById('draggable-local');
@@ -274,7 +302,9 @@ function setupCallListener() {
     } else {
       pendingCall = call;
       const btn = document.getElementById('btn-start-video');
-      btn.innerText = "Contestar Videollamada (Requiere Cámara)";
+      if (!btn) return;
+      btn.removeAttribute('data-i18n'); // que applyLanguage no lo pise
+      btn.innerText = translations[currentLang].btn_answer_call;
       btn.style.background = "var(--success)";
       btn.style.borderColor = "var(--success)";
     }
@@ -358,20 +388,35 @@ function setTimeSignature(sig, broadcast = true) {
   if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
 }
 
-let droneOsc = null; let droneGain = null;
+let droneOsc = null; let droneGain = null; let currentDroneNote = null;
 function toggleDrone(freq, noteName, broadcast = true) {
-  getAudioContext(); stopDrone(false);
+  getAudioContext();
+  // Segundo clic sobre la misma nota = apagar
+  if (currentDroneNote === noteName) { stopDrone(broadcast); return; }
+  stopDrone(false);
   droneOsc = audioCtx.createOscillator(); droneGain = audioCtx.createGain();
   droneOsc.type = 'sine'; droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
   droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime); droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
   droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination); droneOsc.start();
+  currentDroneNote = noteName;
   document.getElementById('drone-' + noteName).classList.add('playing');
   if (broadcast) sendPeerMessage({ type: 'DRONE_START', freq, noteName });
 }
 
 function stopDrone(broadcast = true) {
-  if (droneGain) droneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-  setTimeout(() => { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); droneOsc = null; } }, 50);
+  // Guardamos referencias locales: si no, el setTimeout apagaba el oscilador
+  // nuevo cuando se cambiaba de una nota a otra.
+  const osc = droneOsc, gain = droneGain;
+  droneOsc = null; droneGain = null; currentDroneNote = null;
+
+  if (gain && audioCtx) {
+    const t = audioCtx.currentTime;
+    gain.gain.cancelScheduledValues(t);
+    gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  }
+  if (osc) setTimeout(() => { try { osc.stop(); osc.disconnect(); } catch (e) {} }, 60);
+
   document.querySelectorAll('.drone-btn').forEach(b => b.classList.remove('playing'));
   if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
 }
