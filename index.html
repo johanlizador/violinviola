@@ -62,7 +62,7 @@
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Enlace para el alumno:</p>
             <div class="share-container" style="margin-top: 0;">
               <input type="text" id="student-link-input" readonly />
-              <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink()">Copiar</button>
+              <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink(this)">Copiar</button>
             </div>
           </div>
           <div>
@@ -100,6 +100,7 @@
               
               <!-- Video Local (El Pequeño Arrastrable) -->
               <div class="video-box local-box" id="draggable-local">
+                 <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
                  <video id="local-video" autoplay playsinline muted></video>
                  <div class="video-label">Tú</div>
               </div>
