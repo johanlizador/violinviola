@@ -4,94 +4,66 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Díaz-Núñez Music Studio | Strings Academy & Live Classroom</title>
-  <!-- PeerJS para comunicación WebRTC P2P en tiempo real -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
-    :root {
-      --bg-main: #0d1117;
-      --bg-card: #161b22;
-      --bg-card-hover: #1f242c;
-      --border-color: #30363d;
-      --accent-gold: #e5a93c;
-      --accent-gold-hover: #f3be5d;
-      --text-main: #f0f6fc;
-      --text-muted: #8b949e;
-      --success: #2ea043;
-      --danger: #da3633;
-      --warning: #d29922;
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
+    /* ... (Mismos estilos iniciales que ya tenías) ... */
+    :root { --bg-main: #0d1117; --bg-card: #161b22; --bg-card-hover: #1f242c; --border-color: #30363d; --accent-gold: #e5a93c; --accent-gold-hover: #f3be5d; --text-main: #f0f6fc; --text-muted: #8b949e; --success: #2ea043; --danger: #da3633; --warning: #d29922; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-family); line-height: 1.6; scroll-behavior: smooth; }
-
-    /* Navegación */
     header { position: sticky; top: 0; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; letter-spacing: 0.5px; }
+    .brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; }
     nav { display: flex; align-items: center; gap: 1.2rem; }
-    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; transition: color 0.2s ease; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; }
     nav a:hover { color: var(--text-main); }
-    .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; }
-    .lang-btn:hover { background: var(--border-color); color: var(--accent-gold-hover); }
-
-    /* Layout general */
+    .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+    
     .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.2rem; }
     .hero { text-align: center; padding: 4rem 1rem 3rem 1rem; border-bottom: 1px solid var(--border-color); }
     .hero h1 { font-size: 2.6rem; margin-bottom: 1rem; color: #fff; }
     .hero p { color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem auto; font-size: 1.15rem; }
-    .btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: transform 0.15s ease, background-color 0.2s ease; }
-    .btn-cta:hover { background: var(--accent-gold-hover); transform: translateY(-2px); }
+    .btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; }
     .section-title { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent-gold); }
 
-    /* Aula Virtual / Remote Studio */
     .studio-box { background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: 14px; padding: 2rem; margin: 3rem 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
     .studio-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-    
     .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; background: #21262d; border: 1px solid var(--border-color); }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 5px rgba(255,255,255,0.2); }
     .dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
     .dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 
-    .role-selection { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-    .role-btn { flex: 1; padding: 0.8rem; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
-    .role-btn.active { border-color: var(--accent-gold); background: var(--accent-gold); color: #000; }
-
-    #student-join-panel { display: none; text-align: center; padding: 2rem; border: 1px solid var(--accent-gold); border-radius: 8px; margin-bottom: 1.5rem; background: rgba(229, 169, 60, 0.05); }
-
-    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; transition: opacity 0.3s ease; }
-    @media (max-width: 700px) { .controls-grid { grid-template-columns: 1fr; } }
-    .card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; }
-    .card-inner h4 { margin-bottom: 1rem; color: var(--accent-gold); font-size: 1.1rem; }
+    /* NUEVO: Contenedor de Login de Profesor */
+    #teacher-login-panel { text-align: center; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-main); }
+    .login-input { padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: #090d12; color: var(--accent-gold); margin-right: 0.5rem; outline: none; font-size: 1rem; text-align: center; letter-spacing: 2px; }
     
+    #student-join-panel { display: none; text-align: center; padding: 2rem; border: 1px solid var(--accent-gold); border-radius: 8px; margin-bottom: 1.5rem; background: rgba(229, 169, 60, 0.05); }
+    #teacher-share-box { display: none; margin-bottom: 1.5rem; }
+
+    .controls-grid { display: none; grid-template-columns: 1fr 1fr; gap: 1.5rem; } /* Oculto por defecto */
+    @media (max-width: 700px) { .controls-grid { grid-template-columns: 1fr; } }
+    .card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; position: relative; }
+    
+    /* Overlay para bloquear controles al alumno */
+    .lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.6); z-index: 10; border-radius: 10px; display: none; cursor: not-allowed; }
+
     .tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
     input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
-    
     .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background 0.15s ease; }
-    .tool-btn:hover { background: var(--bg-card-hover); }
+    .tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; }
     .tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
-    .tool-btn.primary:hover { background: var(--accent-gold-hover); }
     .tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
-
     .drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
-    .drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+    .drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; }
     .drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
-
     .share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
     .share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
 
-    /* Biografías */
+    /* Profesores */
     .teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
     @media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
-    .teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; transition: border-color 0.2s ease; }
-    .teacher-card:hover { border-color: var(--accent-gold); }
+    .teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; }
     .teacher-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
     .teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
     .teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
-    .links-list { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; }
-    .links-list a { color: var(--accent-gold); text-decoration: none; display: inline-block; margin-right: 12px; margin-top: 4px; }
-    .links-list a:hover { text-decoration: underline; }
-
     footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
   </style>
 </head>
@@ -109,8 +81,8 @@
   <section class="hero">
     <div class="container">
       <h1 data-i18n="hero_title">Excelencia e Innovación en Cuerdas</h1>
-      <p data-i18n="hero_subtitle">Clases privadas de Violín y Viola. Respaldados por formación internacional y un aula virtual con herramientas acústicas sincronizadas en tiempo real.</p>
-      <a href="#studio" class="btn-cta" data-i18n="hero_cta">Entrar al Aula Remota</a>
+      <p data-i18n="hero_subtitle">Clases privadas de Violín y Viola respaldadas por formación internacional y herramientas acústicas sincronizadas.</p>
+      <a href="#studio" class="btn-cta" data-i18n="hero_cta">Entrar al Aula</a>
     </div>
   </section>
 
@@ -121,59 +93,71 @@
       <div class="studio-header">
         <span class="status-badge">
           <span class="dot" id="status-dot"></span>
-          <span id="status-text">Iniciando sistema...</span>
+          <span id="status-text">Esperando conexión...</span>
         </span>
         <div style="font-size: 0.85rem; color: var(--text-muted);">
-          ID de Sesión: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
+          ID: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
         </div>
       </div>
 
-      <div class="role-selection">
-        <button class="role-btn active" id="btn-role-teacher" onclick="setRole('teacher')" data-i18n="role_teacher">Panel del Profesor</button>
-        <button class="role-btn" id="btn-role-student" onclick="setRole('student')" data-i18n="role_student">Vista del Alumno</button>
+      <!-- Login de Profesor (Oculto si eres alumno) -->
+      <div id="teacher-login-panel">
+        <h3 style="color: #fff; margin-bottom: 1rem;" data-i18n="login_title">Acceso a Panel de Profesor</h3>
+        <input type="password" id="teacher-password" class="login-input" placeholder="Clave de acceso" />
+        <button class="btn-cta" onclick="authenticateTeacher()" data-i18n="btn_login">Desbloquear Aula</button>
+        <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Clave incorrecta.</p>
       </div>
 
-      <div id="teacher-share-box">
-        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Envía este enlace directo a tu alumno para sincronizar la clase:</p>
-        <div class="share-container">
-          <input type="text" id="student-link-input" readonly value="Generando enlace..." />
-          <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink()" data-i18n="btn_copy">Copiar</button>
-        </div>
-      </div>
-
-      <!-- Panel especial para que el alumno active su audio -->
+      <!-- Panel de ingreso para el Alumno -->
       <div id="student-join-panel">
         <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem;" data-i18n="join_title">¡Bienvenido a la clase!</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic en el botón para activar el sonido de tu navegador y conectar con tu profesor.</p>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic abajo para activar el sonido y conectar.</p>
         <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
+      </div>
+
+      <!-- Herramientas del Profesor (Ocultas hasta loguearse) -->
+      <div id="teacher-share-box">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+          <div style="flex: 1; min-width: 250px;">
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Enlace para el alumno:</p>
+            <div class="share-container" style="margin-top: 0;">
+              <input type="text" id="student-link-input" readonly />
+              <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink()">Copiar</button>
+            </div>
+          </div>
+          <!-- BOTÓN MÁGICO PARA DAR PERMISO AL ALUMNO -->
+          <div>
+            <button id="btn-toggle-student-auth" class="tool-btn" style="border-color: var(--warning); color: var(--warning);" onclick="toggleStudentPermissions()">
+              🔒 Alumno Bloqueado (Clic para permitir control)
+            </button>
+          </div>
+        </div>
       </div>
 
       <div style="height: 1.5rem;"></div>
 
+      <!-- Controles Principales -->
       <div class="controls-grid" id="main-controls">
         
         <div class="card-inner">
+          <div class="lock-overlay" id="lock-metro"></div> <!-- Capa que congela los clicks -->
           <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
           <div class="tempo-display" id="bpm-display">100</div>
-          
           <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
-
           <div style="margin-bottom: 1rem;">
-            <label style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="time_sig">Compás:</label>
-            <div class="btn-group" style="margin-top: 0.3rem;">
+            <div class="btn-group">
               <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
               <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
               <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
               <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
             </div>
           </div>
-
           <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
         </div>
 
         <div class="card-inner">
+          <div class="lock-overlay" id="lock-drone"></div> <!-- Capa que congela los clicks -->
           <h4 data-i18n="drone_heading">Drones de Afinación</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;" data-i18n="drone_desc">Sonido continuo para práctica (Quintas Justas):</p>
           <div class="drone-grid">
             <button class="drone-btn" id="drone-C" onclick="toggleDrone(130.81, 'C')">DO</button>
             <button class="drone-btn" id="drone-G" onclick="toggleDrone(196.00, 'G')">SOL</button>
@@ -181,7 +165,7 @@
             <button class="drone-btn" id="drone-A" onclick="toggleDrone(440.00, 'A')">LA</button>
             <button class="drone-btn" id="drone-E" onclick="toggleDrone(659.25, 'E')">MI</button>
           </div>
-          <button class="tool-btn" style="width: 100%; margin-bottom: 1.5rem;" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
+          <button class="tool-btn" style="width: 100%; margin-top: 0.5rem;" onclick="stopDrone()">Detener Afinador</button>
         </div>
 
       </div>
@@ -190,211 +174,153 @@
 
   <!-- Profesores -->
   <section id="teachers" class="container">
-    <h2 class="section-title" data-i18n="faculty_title">Nuestros Profesores</h2>
     <div class="teachers-grid">
-      <!-- Abril -->
       <div class="teacher-card">
         <h3>Abril C. Núñez</h3>
-        <div class="tagline" data-i18n="abril_tagline">Violinista | Master of Music (Duquesne University)</div>
-        <p data-i18n="abril_bio_1">Violinista y educadora con amplia trayectoria internacional. Obtuvo su Maestría en Duquesne University y su Licenciatura en UNEARTE.</p>
-        <p data-i18n="abril_bio_2">Miembro de la sección de violines de Canton Symphony Orchestra, colabora regularmente con Pittsburgh Opera, Wheeling Symphony y Erie Philharmonic. Participó en giras mundiales con el Peace Boat y ha colaborado con Andrea Bocelli.</p>
+        <div class="tagline">Violinista | Master of Music</div>
+        <p>Miembro de Canton Symphony Orchestra, colabora regularmente con Pittsburgh Opera, Wheeling Symphony y Erie Philharmonic.</p>
       </div>
-      <!-- Johann -->
       <div class="teacher-card">
         <h3>Johann David Díaz Ramírez</h3>
-        <div class="tagline" data-i18n="johann_tagline">Violista y Violinista | Master of Music | LRSM Distinction</div>
-        <p data-i18n="johann_bio_1">Virtuoso violista formado en el Mozarteum de Caracas. Posee Maestría por Duquesne University y Licenciatura de la Royal Schools of Music (UK).</p>
-        <p data-i18n="johann_bio_2">Músico de la Pittsburgh Opera Orchestra, Youngstown Symphony y Johnstown Symphony. Su repertorio como solista incluye conciertos de Bartók, Walton y Don Quijote de Richard Strauss.</p>
+        <div class="tagline">Violista y Violinista | Master of Music | LRSM</div>
+        <p>Músico de la Pittsburgh Opera Orchestra, Youngstown Symphony y Johnstown Symphony.</p>
       </div>
     </div>
   </section>
 
-  <footer>
-    <p>&copy; 2026 Díaz-Núñez Music Studio. <span data-i18n="footer_rights">Todos los derechos reservados.</span></p>
-  </footer>
-
   <script>
-    /* 1. DICCIONARIO Y TRADUCCIÓN */
-    const translations = {
-      es: {
-        nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas",
-        hero_subtitle: "Clases privadas de Violín y Viola. Respaldados por formación internacional y un aula virtual con herramientas acústicas sincronizadas en tiempo real.",
-        hero_cta: "Entrar al Aula Remota", studio_title: "Aula de Práctica Sincronizada",
-        role_teacher: "Panel del Profesor", role_student: "Vista del Alumno",
-        share_hint: "Envía este enlace directo a tu alumno para sincronizar la clase:", btn_copy: "Copiar", copied: "¡Copiado!",
-        join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic en el botón para activar el sonido de tu navegador y conectar con tu profesor.", join_btn: "Activar Audio y Conectar",
-        metronome_heading: "Metrónomo de Precisión", time_sig: "Compás:", btn_start_metro: "Iniciar Metrónomo", btn_stop_metro: "Detener Metrónomo",
-        drone_heading: "Drones de Afinación", drone_desc: "Sonido continuo para práctica (Quintas Justas):", btn_stop_drone: "Detener Afinador",
-        status_init: "Iniciando sistema...", status_waiting: "Esperando al alumno...", status_ready_student: "Esperando tu clic para conectar...",
-        status_connecting: "Conectando...", status_connected: "Conectado en Vivo", status_error: "Error de conexión",
-        faculty_title: "Nuestros Profesores", footer_rights: "Todos los derechos reservados."
-      },
-      en: {
-        nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation",
-        hero_subtitle: "Private violin and viola instruction backed by international training and a virtual studio with real-time synchronized tools.",
-        hero_cta: "Enter Virtual Studio", studio_title: "Synchronized Practice Studio",
-        role_teacher: "Teacher Panel", role_student: "Student View",
-        share_hint: "Send this direct link to your student to sync the class:", btn_copy: "Copy", copied: "Copied!",
-        join_title: "Welcome to class!", join_desc: "Click the button below to enable browser audio and connect to your teacher.", join_btn: "Enable Audio & Connect",
-        metronome_heading: "Precision Metronome", time_sig: "Time Signature:", btn_start_metro: "Start Metronome", btn_stop_metro: "Stop Metronome",
-        drone_heading: "Tuning Drones", drone_desc: "Continuous sound for intonation practice (Pure Fifths):", btn_stop_drone: "Stop Drone",
-        status_init: "Initializing system...", status_waiting: "Waiting for student to join...", status_ready_student: "Waiting for your click to connect...",
-        status_connecting: "Connecting...", status_connected: "Live Connected", status_error: "Connection Error",
-        faculty_title: "Meet the Faculty", footer_rights: "All rights reserved."
-      }
-    };
+    /* 1. CONFIGURACIÓN DE SEGURIDAD Y TRADUCCIONES */
+    const TEACHER_PASSWORD = "viola2026"; // <--- CAMBIA ESTO POR LA CONTRASEÑA QUE QUIERAS
+    
+    let isStudentAllowed = false; // El alumno empieza sin permisos
 
+    const translations = {
+      es: { nav_teachers: "Profesores", nav_studio: "Aula Remota", hero_title: "Excelencia e Innovación en Cuerdas", hero_subtitle: "Clases privadas de Violín y Viola.", hero_cta: "Entrar al Aula", studio_title: "Aula de Práctica Sincronizada", login_title: "Acceso a Panel de Profesor", btn_login: "Desbloquear Aula", join_title: "¡Bienvenido a la clase!", join_desc: "Haz clic abajo para activar el sonido y conectar.", join_btn: "Activar Audio y Conectar", metronome_heading: "Metrónomo de Precisión", btn_start_metro: "Iniciar", btn_stop_metro: "Detener", drone_heading: "Drones de Afinación" },
+      en: { nav_teachers: "Faculty", nav_studio: "Live Classroom", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", join_title: "Welcome to class!", join_desc: "Click below to enable audio and connect.", join_btn: "Enable Audio & Connect", metronome_heading: "Precision Metronome", btn_start_metro: "Start", btn_stop_metro: "Stop", drone_heading: "Tuning Drones" }
+    };
     let currentLang = 'es';
     function toggleLanguage() { currentLang = currentLang === 'es' ? 'en' : 'es'; applyLanguage(currentLang); }
-    function applyLanguage(lang) {
-      document.documentElement.lang = lang;
-      document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES';
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')];
-      });
-    }
+    function applyLanguage(lang) { document.documentElement.lang = lang; document.getElementById('lang-toggle').innerText = lang === 'es' ? 'EN' : 'ES'; document.querySelectorAll('[data-i18n]').forEach(el => { if (translations[lang][el.getAttribute('data-i18n')]) el.innerText = translations[lang][el.getAttribute('data-i18n')]; }); }
 
-    /* 2. LÓGICA DE WEBRTC Y CONEXIÓN ROBUSTA */
-    let peer = null;
-    let activeConnection = null;
-    let currentRole = 'teacher';
-    let joinIdFromUrl = null;
+    /* 2. LÓGICA DE ROLES Y AUTH */
+    let peer = null; let activeConnection = null; let currentRole = 'visitor'; let joinIdFromUrl = null;
 
-    function setStatus(textKey, state = 'warning') {
-      const el = document.getElementById('status-text');
-      const dot = document.getElementById('status-dot');
-      el.innerText = translations[currentLang][textKey] || textKey;
-      dot.className = 'dot ' + state;
-    }
-
-    function initPeer() {
+    function initSystem() {
       applyLanguage(currentLang);
       const urlParams = new URLSearchParams(window.location.search);
       joinIdFromUrl = urlParams.get('join');
-      setStatus('status_init', 'warning');
-
-      // Servidores STUN de Google para saltar bloqueos de red
-      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
-
-      peer.on('open', (id) => {
-        document.getElementById('peer-id-label').innerText = id;
-        if (joinIdFromUrl) {
-          setRole('student');
-          setStatus('status_ready_student', 'warning');
-        } else {
-          setRole('teacher');
-          setStatus('status_waiting', 'warning');
-          document.getElementById('student-link-input').value = window.location.href.split('?')[0] + '?join=' + id;
-        }
-      });
-
-      peer.on('connection', (conn) => {
-        activeConnection = conn;
-        setupConnectionEvents(conn);
-      });
-
-      peer.on('error', (err) => {
-        console.error(err);
-        setStatus('status_error', 'error');
-      });
-    }
-
-    function setupConnectionEvents(conn) {
-      conn.on('open', () => { setStatus('status_connected', 'connected'); });
-      conn.on('data', (data) => { handleIncomingData(data); });
-      conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'status_waiting' : 'status_error', 'warning'); });
-    }
-
-    /* TRUCO PARA DESBLOQUEAR EL AUDIO DE SAFARI EN iPHONE/iPAD */
-    function studentJoinClass() {
-      if (!joinIdFromUrl) return;
       
-      const ctx = getAudioContext();
-      ctx.resume().then(() => {
-        
-        // Creamos un sonido súper rápido e inaudible (0 volumen) al hacer clic 
-        // para que iOS nos permita seguir reproduciendo sonidos el resto de la sesión.
-        const unlockOsc = ctx.createOscillator();
-        const unlockGain = ctx.createGain();
-        unlockOsc.connect(unlockGain);
-        unlockGain.connect(ctx.destination);
-        unlockGain.gain.value = 0; 
-        unlockOsc.start(ctx.currentTime);
-        unlockOsc.stop(ctx.currentTime + 0.001);
-
-        document.getElementById('student-join-panel').style.display = 'none';
-        document.getElementById('main-controls').style.opacity = '1';
-        setStatus('status_connecting', 'warning');
-        
-        const conn = peer.connect(joinIdFromUrl);
-        activeConnection = conn;
-        setupConnectionEvents(conn);
-      });
-    }
-
-    function setRole(role) {
-      currentRole = role;
-      document.getElementById('btn-role-teacher').classList.toggle('active', role === 'teacher');
-      document.getElementById('btn-role-student').classList.toggle('active', role === 'student');
-      document.getElementById('teacher-share-box').style.display = role === 'teacher' ? 'block' : 'none';
-      
-      const controls = document.getElementById('main-controls');
-      if (role === 'student') {
-        controls.style.pointerEvents = 'none'; // El alumno solo mira y escucha
-        if(document.getElementById('student-join-panel').style.display !== 'none') {
-           controls.style.opacity = '0.3';
-           document.getElementById('student-join-panel').style.display = 'block';
-        }
+      if (joinIdFromUrl) {
+        // Entra como alumno directamente, oculta el login de profe
+        currentRole = 'student';
+        document.getElementById('teacher-login-panel').style.display = 'none';
+        document.getElementById('student-join-panel').style.display = 'block';
+        document.getElementById('main-controls').style.display = 'grid';
+        lockStudentInterface(true); // Bloquear controles
+        initPeerClient();
       } else {
-        controls.style.pointerEvents = 'auto';
-        controls.style.opacity = '1';
-        document.getElementById('student-join-panel').style.display = 'none';
+        // Entra normal, muestra login de profe
+        document.getElementById('teacher-login-panel').style.display = 'block';
       }
     }
 
-    function sendPeerMessage(msg) {
-      if (activeConnection && activeConnection.open) activeConnection.send(msg);
+    function authenticateTeacher() {
+      const input = document.getElementById('teacher-password').value;
+      if (input === TEACHER_PASSWORD) {
+        currentRole = 'teacher';
+        document.getElementById('teacher-login-panel').style.display = 'none';
+        document.getElementById('teacher-share-box').style.display = 'block';
+        document.getElementById('main-controls').style.display = 'grid';
+        lockStudentInterface(false); // El profe nunca está bloqueado
+        initPeerTeacher();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
     }
 
-    function copyStudentLink() {
-      const input = document.getElementById('student-link-input');
-      input.select();
-      navigator.clipboard.writeText(input.value);
-      const btn = event.target;
-      btn.innerText = translations[currentLang].copied;
-      setTimeout(() => btn.innerText = translations[currentLang].btn_copy, 2000);
+    /* 3. PEERJS (WEBRTC) */
+    function setStatus(text, state) { document.getElementById('status-text').innerText = text; document.getElementById('status-dot').className = 'dot ' + state; }
+
+    function initPeerTeacher() {
+      setStatus("Generando sala...", "warning");
+      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+      peer.on('open', (id) => {
+        document.getElementById('peer-id-label').innerText = id;
+        document.getElementById('student-link-input').value = window.location.href.split('?')[0] + '?join=' + id;
+        setStatus("Esperando al alumno...", "warning");
+      });
+      peer.on('connection', (conn) => { activeConnection = conn; setupConn(conn); });
     }
 
-    /* 3. MOTOR DE AUDIO (METRÓNOMO Y AFINADOR) */
-    let audioCtx = null;
-    let isPlaying = false;
-    let bpm = 100;
-    let beatsPerBar = 4;
-    let currentBeat = 0;
-    let nextNoteTime = 0.0;
-    let timerID = null;
-
-    function getAudioContext() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      return audioCtx;
+    function initPeerClient() {
+      setStatus("Listo para conectar...", "warning");
+      peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+      peer.on('open', (id) => { document.getElementById('peer-id-label').innerText = "Alumno"; });
     }
 
+    function studentJoinClass() {
+      const ctx = getAudioContext();
+      ctx.resume().then(() => {
+        const unlockOsc = ctx.createOscillator(); const unlockGain = ctx.createGain();
+        unlockOsc.connect(unlockGain); unlockGain.connect(ctx.destination); unlockGain.gain.value = 0; 
+        unlockOsc.start(ctx.currentTime); unlockOsc.stop(ctx.currentTime + 0.001);
+
+        document.getElementById('student-join-panel').style.display = 'none';
+        setStatus("Conectando con profesor...", "warning");
+        const conn = peer.connect(joinIdFromUrl);
+        activeConnection = conn; setupConn(conn);
+      });
+    }
+
+    function setupConn(conn) {
+      conn.on('open', () => { 
+        setStatus("Conectado en Vivo", "connected"); 
+        // Si soy el profe y se conecta alguien, le envío mi estado actual de permisos
+        if(currentRole === 'teacher') sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
+      });
+      conn.on('data', (data) => { handleData(data); });
+      conn.on('close', () => { setStatus(currentRole === 'teacher' ? "Alumno desconectado" : "Profesor desconectado", "error"); });
+    }
+
+    function sendPeerMessage(msg) { if (activeConnection && activeConnection.open) activeConnection.send(msg); }
+    function copyStudentLink() { document.getElementById('student-link-input').select(); document.execCommand('copy'); }
+
+    /* 4. BLOQUEOS Y PERMISOS BIDIRECCIONALES */
+    function toggleStudentPermissions() {
+      isStudentAllowed = !isStudentAllowed;
+      const btn = document.getElementById('btn-toggle-student-auth');
+      if (isStudentAllowed) {
+        btn.innerText = "🔓 Alumno Desbloqueado (Clic para bloquear)";
+        btn.style.color = "var(--success)"; btn.style.borderColor = "var(--success)";
+      } else {
+        btn.innerText = "🔒 Alumno Bloqueado (Clic para permitir control)";
+        btn.style.color = "var(--warning)"; btn.style.borderColor = "var(--warning)";
+      }
+      sendPeerMessage({ type: 'PERMISSIONS', allowed: isStudentAllowed });
+    }
+
+    function lockStudentInterface(lock) {
+      // Muestra u oculta la capa transparente que congela los clicks
+      document.getElementById('lock-metro').style.display = lock ? 'block' : 'none';
+      document.getElementById('lock-drone').style.display = lock ? 'block' : 'none';
+    }
+
+    /* 5. AUDIO (METRÓNOMO Y AFINADOR) */
+    let audioCtx = null; let isPlaying = false; let bpm = 100; let beatsPerBar = 4; let currentBeat = 0; let nextNoteTime = 0.0; let timerID = null;
+    function getAudioContext() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+    
     function scheduleNote(beatNumber, time) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
       osc.frequency.value = (beatNumber === 0) ? 1000 : 650;
       gain.gain.setValueAtTime(beatNumber === 0 ? 0.8 : 0.4, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
       osc.start(time); osc.stop(time + 0.04);
     }
-
+    
     function scheduler() {
       while (nextNoteTime < audioCtx.currentTime + 0.1) {
-        scheduleNote(currentBeat, nextNoteTime);
-        nextNoteTime += (60.0 / bpm);
-        currentBeat = (currentBeat + 1) % beatsPerBar;
+        scheduleNote(currentBeat, nextNoteTime); nextNoteTime += (60.0 / bpm); currentBeat = (currentBeat + 1) % beatsPerBar;
       }
       timerID = setTimeout(scheduler, 25);
     }
@@ -402,65 +328,51 @@
     function toggleMetronome(broadcast = true) {
       getAudioContext();
       if (isPlaying) {
-        isPlaying = false;
-        clearTimeout(timerID);
-        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro;
-        document.getElementById('btn-play-metro').classList.remove('active');
-        if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'METRO_STOP' });
+        isPlaying = false; clearTimeout(timerID);
+        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_start_metro; document.getElementById('btn-play-metro').classList.remove('active');
+        if (broadcast) sendPeerMessage({ type: 'METRO_STOP' });
       } else {
-        isPlaying = true;
-        currentBeat = 0;
-        nextNoteTime = audioCtx.currentTime;
-        scheduler();
-        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro;
-        document.getElementById('btn-play-metro').classList.add('active');
-        if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
+        isPlaying = true; currentBeat = 0; nextNoteTime = audioCtx.currentTime; scheduler();
+        document.getElementById('btn-play-metro').innerText = translations[currentLang].btn_stop_metro; document.getElementById('btn-play-metro').classList.add('active');
+        if (broadcast) sendPeerMessage({ type: 'METRO_START', bpm, beatsPerBar });
       }
     }
 
     function onTempoChange(val, broadcast = true) {
-      bpm = parseInt(val);
-      document.getElementById('bpm-display').innerText = bpm;
-      document.getElementById('tempo-slider').value = bpm;
-      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
+      bpm = parseInt(val); document.getElementById('bpm-display').innerText = bpm; document.getElementById('tempo-slider').value = bpm;
+      if (broadcast) sendPeerMessage({ type: 'TEMPO_CHANGE', bpm });
     }
 
     function setTimeSignature(sig, broadcast = true) {
-      beatsPerBar = sig;
-      currentBeat = 0;
-      document.querySelectorAll('.ts-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('ts-' + sig).classList.add('active');
-      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
+      beatsPerBar = sig; currentBeat = 0;
+      document.querySelectorAll('.ts-btn').forEach(b => b.classList.remove('active')); document.getElementById('ts-' + sig).classList.add('active');
+      if (broadcast) sendPeerMessage({ type: 'TIMESIG_CHANGE', beatsPerBar });
     }
 
-    let droneOsc = null; let droneGain = null; let activeDroneBtn = null;
+    let droneOsc = null; let droneGain = null;
     function toggleDrone(freq, noteName, broadcast = true) {
-      getAudioContext();
-      stopDrone(false);
-      droneOsc = audioCtx.createOscillator();
-      droneGain = audioCtx.createGain();
-      droneOsc.type = 'sine';
-      droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-      droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
-      droneOsc.connect(droneGain);
-      droneGain.connect(audioCtx.destination);
-      droneOsc.start();
-      
-      activeDroneBtn = 'drone-' + noteName;
-      document.getElementById(activeDroneBtn).classList.add('playing');
-      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'DRONE_START', freq, noteName });
+      getAudioContext(); stopDrone(false);
+      droneOsc = audioCtx.createOscillator(); droneGain = audioCtx.createGain();
+      droneOsc.type = 'sine'; droneOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      droneGain.gain.setValueAtTime(0.01, audioCtx.currentTime); droneGain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+      droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination); droneOsc.start();
+      document.getElementById('drone-' + noteName).classList.add('playing');
+      if (broadcast) sendPeerMessage({ type: 'DRONE_START', freq, noteName });
     }
 
     function stopDrone(broadcast = true) {
       if (droneGain) droneGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
       setTimeout(() => { if (droneOsc) { droneOsc.stop(); droneOsc.disconnect(); droneOsc = null; } }, 50);
-      document.querySelectorAll('.drone-btn').forEach(btn => btn.classList.remove('playing'));
-      if (broadcast && currentRole === 'teacher') sendPeerMessage({ type: 'DRONE_STOP' });
+      document.querySelectorAll('.drone-btn').forEach(b => b.classList.remove('playing'));
+      if (broadcast) sendPeerMessage({ type: 'DRONE_STOP' });
     }
 
-    function handleIncomingData(data) {
-      if (data.type === 'METRO_START') { bpm = data.bpm; beatsPerBar = data.beatsPerBar; onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); if(!isPlaying) toggleMetronome(false); }
+    /* 6. MANEJO DE MENSAJES RECIBIDOS (BIDIRECCIONAL) */
+    function handleData(data) {
+      if (data.type === 'PERMISSIONS') {
+        if(currentRole === 'student') lockStudentInterface(!data.allowed);
+      }
+      else if (data.type === 'METRO_START') { bpm = data.bpm; beatsPerBar = data.beatsPerBar; onTempoChange(bpm, false); setTimeSignature(beatsPerBar, false); if(!isPlaying) toggleMetronome(false); }
       else if (data.type === 'METRO_STOP') { if(isPlaying) toggleMetronome(false); }
       else if (data.type === 'TEMPO_CHANGE') { onTempoChange(data.bpm, false); }
       else if (data.type === 'TIMESIG_CHANGE') { setTimeSignature(data.beatsPerBar, false); }
@@ -468,7 +380,7 @@
       else if (data.type === 'DRONE_STOP') { stopDrone(false); }
     }
 
-    window.addEventListener('load', initPeer);
+    window.addEventListener('load', initSystem);
   </script>
 </body>
 </html>
