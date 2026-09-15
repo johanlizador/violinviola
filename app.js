@@ -9,7 +9,7 @@ const translations = {
     vid_starting: "Accediendo a cámara...", btn_answer_call: "Contestar videollamada (requiere cámara)", copy_ok: "¡Copiado!", copy_label: "Copiar",
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
     st_waiting: "Esperando conexión...", st_generating: "Generando sala...", st_wait_student: "Esperando al alumno...", st_ready: "Listo para conectar...", st_connecting: "Conectando con tu profesor...", st_live: "Conectado en vivo", st_student_left: "El alumno se desconectó", st_teacher_left: "Tu profesor se desconectó",
-    err_peer_gone: "No se encontró esa sala. ¿El enlace es el actual?", err_network: "Sin conexión con el servidor de enlace", err_id: "Esa sala ya está en uso", err_browser: "Este navegador no soporta videollamadas", err_generic: "Error de conexión", err_ice: "No se pudo abrir la conexión (falta TURN)",
+    err_peer_gone: "No se encontró esa sala. ¿El enlace es el actual?", err_network: "Sin conexión con el servidor de enlace", err_id: "Ya tienes el aula abierta en otra pestaña. Ciérrala y recarga.", err_browser: "Este navegador no soporta videollamadas", err_generic: "Error de conexión", err_ice: "No se pudo abrir la conexión (falta TURN)", err_room_closed: "El aula no está abierta. Pídele a tu profesor que la abra y vuelve a intentarlo.", st_retrying: "El aula aún no está abierta, reintentando...",
     lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
   },
   en: { 
@@ -18,7 +18,7 @@ const translations = {
     vid_starting: "Accessing camera...", btn_answer_call: "Answer video call (camera required)", copy_ok: "Copied!", copy_label: "Copy",
     student_hint: "Are you a student? You need the link your teacher sends you.",
     st_waiting: "Waiting for connection...", st_generating: "Creating room...", st_wait_student: "Waiting for the student...", st_ready: "Ready to connect...", st_connecting: "Connecting to your teacher...", st_live: "Live", st_student_left: "The student disconnected", st_teacher_left: "Your teacher disconnected",
-    err_peer_gone: "That room wasn't found. Is the link current?", err_network: "No connection to the signalling server", err_id: "That room is already in use", err_browser: "This browser doesn't support video calls", err_generic: "Connection error", err_ice: "Could not open the connection (TURN needed)",
+    err_peer_gone: "That room wasn't found. Is the link current?", err_network: "No connection to the signalling server", err_id: "You already have the classroom open in another tab. Close it and reload.", err_browser: "This browser doesn't support video calls", err_generic: "Connection error", err_ice: "Could not open the connection (TURN needed)", err_room_closed: "The classroom isn't open. Ask your teacher to open it, then try again.", st_retrying: "Classroom not open yet, retrying...",
     lock_badge: "🔒 Your teacher controls this", routing_label: "Where do the metronome and drones play?", routing_local: "On my machine", routing_remote: "On the student's machine", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
   }
 };
@@ -94,7 +94,8 @@ function authenticateTeacher() {
     document.getElementById('teacher-share-box').style.display = 'block';
     document.getElementById('main-controls').style.display = 'grid'; 
     lockStudentInterface(false); 
-    initPeerTeacher();
+    const quien = document.getElementById('room-choice');
+    initPeerTeacher(ROOMS[quien ? quien.value : 'johann']);
   } else {
     document.getElementById('login-error').style.display = 'block';
   }
@@ -144,16 +145,43 @@ if (TURN_USER && TURN_PASS) {
   );
 }
 
-function newPeer() {
-  const p = new Peer({ config: { iceServers: ICE_SERVERS } });
+/* Salas fijas: el enlace de cada profesor es SIEMPRE el mismo.
+   Antes se generaba un ID al azar en cada carga, así que bastaba recargar la
+   página para que el enlace ya enviado dejara de existir (peer-unavailable). */
+const ROOMS = {
+  johann: 'dnstudio-johann-aula',
+  abril:  'dnstudio-abril-aula'
+};
+
+function newPeer(fixedId) {
+  const p = fixedId
+    ? new Peer(fixedId, { config: { iceServers: ICE_SERVERS } })
+    : new Peer({ config: { iceServers: ICE_SERVERS } });
+  // El servidor de enlace corta las sesiones inactivas; al reconectar se
+  // recupera el MISMO id, así que el enlace del alumno sigue sirviendo.
+  p.on('disconnected', () => { if (!p.destroyed) { showDiagnostic('reconectando...'); p.reconnect(); } });
   p.on('error', (err) => onPeerError(err));
   return p;
 }
 
 /* Hasta ahora no había ningún manejador de errores: si PeerJS fallaba, fallaba
    en silencio y el profesor se quedaba mirando "Esperando al alumno". */
+let joinAttempts = 0;
+
 function onPeerError(err) {
   const tipo = err && err.type ? err.type : 'desconocido';
+
+  // El alumno llegó antes de que el profesor abriera el aula: reintentamos
+  if (tipo === 'peer-unavailable' && currentRole === 'student') {
+    showDiagnostic('PeerJS: peer-unavailable');
+    return retryJoin();
+  }
+  // El profesor tiene otra pestaña abierta con la misma sala
+  if (tipo === 'unavailable-id' && currentRole === 'teacher') {
+    setStatus('err_id', 'error');
+    showDiagnostic('PeerJS: unavailable-id');
+    return;
+  }
   const msg = {
     'peer-unavailable': 'PEER_GONE',
     'network':          'NET_DOWN',
@@ -167,6 +195,25 @@ function onPeerError(err) {
   }[msg], 'error');
   showDiagnostic('PeerJS: ' + tipo);
   console.error('[aula] error de PeerJS:', err);
+}
+
+/* El aula puede abrirse después que el alumno: insistir es lo correcto */
+function retryJoin() {
+  if (joinAttempts >= 4) {
+    hasJoined = false;
+    joinAttempts = 0;
+    setStatus('err_room_closed', 'error');
+    document.getElementById('student-join-panel').style.display = 'block';
+    return;
+  }
+  joinAttempts++;
+  setStatus('st_retrying', 'warning');
+  setTimeout(() => {
+    if (!peer || peer.destroyed) return;
+    const conn = peer.connect(joinIdFromUrl);
+    activeConnection = conn;
+    setupConn(conn);
+  }, 4000);
 }
 
 /* Estado real de la negociación ICE, que es donde falla el CGNAT */
@@ -189,9 +236,9 @@ function showDiagnostic(texto) {
   box.hidden = false;
 }
 
-function initPeerTeacher() {
+function initPeerTeacher(roomId) {
   setStatus('st_generating', 'warning');
-  peer = newPeer();
+  peer = newPeer(roomId);
   peer.on('open', (id) => {
     document.getElementById('peer-id-label').innerText = id;
     // Quitamos primero el #hash y luego la query: si no, un '#studio' en la URL
