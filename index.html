@@ -3,259 +3,418 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Díaz-Núñez Music Studio | Strings Academy & Live Classroom</title>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Díaz-Núñez Music Studio | Clases de violín y viola en Pittsburgh</title>
+  <meta name="description" content="Clases privadas de violín y viola en Pittsburgh, presenciales y en línea, con músicos de la Pittsburgh Opera y la Canton Symphony. Se enseña en español e inglés." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="home.css" />
 </head>
 <body>
 
-  <header>
-    <a href="#" class="brand">Díaz-Núñez Studio</a>
-    <nav>
-      <a href="#teachers" data-i18n="nav_teachers">Profesores</a>
-      <a href="#studio" onclick="enterStudio(); return false;" data-i18n="nav_studio">Aula Remota</a>
-      <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">EN / ES</button>
+<header class="site-head">
+  <div class="wrap">
+    <a href="#" class="wordmark">Díaz-Núñez Music Studio</a>
+    <nav class="site-nav">
+      <a href="#clases" class="hide-sm"><span class="es-only">Clases</span><span class="en-only">Lessons</span></a>
+      <a href="#profesores" class="hide-sm"><span class="es-only">Profesores</span><span class="en-only">Faculty</span></a>
+      <a href="#solicitar"><span class="es-only">Solicitar clase</span><span class="en-only">Request a lesson</span></a>
+      <a href="aula.html" class="to-classroom"><span class="es-only">Aula</span><span class="en-only">Classroom</span></a>
+      <button class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()">EN</button>
     </nav>
-  </header>
+  </div>
+</header>
 
-  <section class="hero">
-    <div class="container">
-      <h1 data-i18n="hero_title">Excelencia e Innovación en Cuerdas</h1>
-      <p data-i18n="hero_subtitle">Clases privadas de Violín y Viola respaldadas por formación internacional y herramientas acústicas sincronizadas.</p>
-      <a href="#studio" class="btn-cta" onclick="enterStudio(); return false;" data-i18n="hero_cta">Entrar al Aula</a>
+<!-- Portada: el cartel de un recital. Dónde tocan es la credencial. -->
+<div class="bill wrap">
+  <h1>
+    <span class="es-only">Clases de violín y viola en Pittsburgh</span>
+    <span class="en-only">Violin and viola lessons in Pittsburgh</span>
+  </h1>
+  <p class="lede">
+    <span class="es-only">Abril Núñez y Johann Díaz enseñan a niños y adultos, en persona y en línea. Las clases se dan en español o en inglés.</span>
+    <span class="en-only">Abril Núñez and Johann Díaz teach children and adults, in person and online. Lessons are taught in Spanish or English.</span>
+  </p>
+  <div class="bill-actions">
+    <a href="#solicitar" class="btn btn-solid"><span class="es-only">Solicitar una clase</span><span class="en-only">Request a lesson</span></a>
+    <a href="#profesores" class="btn btn-line"><span class="es-only">Conocer a los profesores</span><span class="en-only">Meet the teachers</span></a>
+  </div>
+
+  <ul class="pit-rail">
+    <li><strong>Pittsburgh Opera</strong> <span class="es-only">Orquesta</span><span class="en-only">Orchestra</span></li>
+    <li><strong>Canton Symphony</strong> <span class="es-only">Violín</span><span class="en-only">Violin</span></li>
+    <li><strong>Youngstown Symphony</strong> <span class="es-only">Viola</span><span class="en-only">Viola</span></li>
+    <li><strong>Johnstown Symphony</strong> <span class="es-only">Viola</span><span class="en-only">Viola</span></li>
+    <li><strong>Duquesne University</strong> <span class="es-only">Máster en interpretación</span><span class="en-only">Master of Music</span></li>
+  </ul>
+</div>
+
+<!-- Clases -->
+<section id="clases" class="wrap">
+  <div class="section-head">
+    <h2><span class="es-only">Qué se enseña</span><span class="en-only">What we teach</span></h2>
+    <p>
+      <span class="es-only">Clases individuales semanales, de media hora o de una hora. Desde el primer día con el instrumento hasta la preparación de audiciones.</span>
+      <span class="en-only">Weekly private lessons, half an hour or a full hour. From a first day holding the instrument to audition preparation.</span>
+    </p>
+  </div>
+
+  <div class="offer">
+    <div class="offer-row">
+      <div>
+        <h3><span class="es-only">Violín</span><span class="en-only">Violin</span></h3>
+        <div class="who">Abril Núñez</div>
+      </div>
+      <p>
+        <span class="es-only">Para niños desde los cinco años y para adultos que empiezan o retoman. Técnica, lectura y repertorio, con recitales para tocar delante de alguien que no sea el profesor.</span>
+        <span class="en-only">For children from age five and for adults starting out or coming back. Technique, reading and repertoire, with recitals so students play for someone other than their teacher.</span>
+      </p>
     </div>
-  </section>
 
-  <section id="studio" class="container">
-    <h2 class="section-title" data-i18n="studio_title">Aula de Práctica Sincronizada</h2>
-    <div class="studio-box">
-      
-      <div class="studio-header">
-        <span class="status-badge">
-          <span class="dot" id="status-dot"></span>
-          <span id="status-text" data-i18n="st_waiting">Esperando conexión...</span>
-        </span>
-        <div id="peer-id-block" style="font-size: 0.85rem; color: var(--text-muted);">
-          ID: <strong id="peer-id-label" style="color: var(--text-main);">...</strong>
+    <div class="offer-row">
+      <div>
+        <h3><span class="es-only">Viola</span><span class="en-only">Viola</span></h3>
+        <div class="who">Johann Díaz</div>
+      </div>
+      <p>
+        <span class="es-only">Para quien empieza directamente en viola, para violinistas que quieren pasarse, y para violistas que trabajan clave de do, sonido y repertorio orquestal.</span>
+        <span class="en-only">For those starting directly on viola, for violinists making the switch, and for violists working on alto clef, sound and orchestral repertoire.</span>
+      </p>
+    </div>
+
+    <div class="offer-row">
+      <div>
+        <h3><span class="es-only">Clases en línea</span><span class="en-only">Online lessons</span></h3>
+        <div class="who"><span class="es-only">Aula propia</span><span class="en-only">Our own classroom</span></div>
+      </div>
+      <p>
+        <span class="es-only">No por videollamada corriente: en un aula construida para esto, donde el metrónomo y el afinador suenan igual en las dos casas.</span>
+        <span class="en-only">Not over a generic video call: in a classroom built for this, where the metronome and the tuner are identical in both homes.</span>
+      </p>
+    </div>
+
+    <div class="offer-row">
+      <div>
+        <h3><span class="es-only">Audiciones y orquesta</span><span class="en-only">Auditions and orchestra</span></h3>
+        <div class="who"><span class="es-only">Los dos</span><span class="en-only">Both teachers</span></div>
+      </div>
+      <p>
+        <span class="es-only">Preparación de audiciones para orquestas juveniles y escuelas de música, incluidos los pasajes orquestales que piden en ellas.</span>
+        <span class="en-only">Preparation for youth orchestra and music school auditions, including the orchestral excerpts they ask for.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Profesores -->
+<section id="profesores" class="wrap">
+  <div class="section-head">
+    <h2><span class="es-only">Quiénes enseñan</span><span class="en-only">Who teaches</span></h2>
+    <p>
+      <span class="es-only">Los dos se formaron en El Sistema venezolano, hicieron el máster en Duquesne y siguen tocando profesionalmente cada semana.</span>
+      <span class="en-only">Both trained in Venezuela's El Sistema, earned their master's at Duquesne, and still perform professionally every week.</span>
+    </p>
+  </div>
+
+  <div class="faculty">
+
+    <article class="player">
+      <div class="player-grid">
+        <div>
+          <h3>Abril C. Núñez</h3>
+          <div class="role"><span class="es-only">Violín</span><span class="en-only">Violin</span></div>
+          <dl class="facts">
+            <div><dt><span class="es-only">Orquesta</span><span class="en-only">Orchestra</span></dt><dd>Canton Symphony Orchestra</dd></div>
+            <div><dt><span class="es-only">Formación</span><span class="en-only">Education</span></dt><dd>Duquesne University · UNEARTE</dd></div>
+            <div><dt><span class="es-only">Enseña desde</span><span class="en-only">Teaching since</span></dt><dd>2007</dd></div>
+            <div><dt><span class="es-only">Idiomas</span><span class="en-only">Languages</span></dt><dd><span class="es-only">Español, inglés</span><span class="en-only">Spanish, English</span></dd></div>
+          </dl>
         </div>
-      </div>
 
-      <!-- Login de Profesor -->
-      <div id="teacher-login-panel">
-        <h3 style="color: #fff; margin-bottom: 1rem;" data-i18n="login_title">Acceso a Panel de Profesor</h3>
-        <input type="password" id="teacher-password" class="login-input" placeholder="Clave de acceso" />
-        <button class="btn-cta" onclick="authenticateTeacher()" data-i18n="btn_login">Desbloquear Aula</button>
-        <p id="login-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Clave incorrecta.</p>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1.2rem;" data-i18n="student_hint">¿Eres alumno? Necesitas el enlace que te envía tu profesor.</p>
-      </div>
-
-      <!-- Panel de ingreso para el Alumno -->
-      <div id="student-join-panel">
-        <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem;" data-i18n="join_title">¡Bienvenido a la clase!</h3>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="join_desc">Haz clic abajo para activar el sonido y conectar.</p>
-        <button class="btn-cta" onclick="studentJoinClass()" data-i18n="join_btn">Activar Audio y Conectar</button>
-      </div>
-
-      <!-- Herramientas del Profesor -->
-      <div id="teacher-share-box">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
-          <div style="flex: 1; min-width: 250px;">
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.4rem;" data-i18n="share_hint">Enlace para el alumno:</p>
-            <div class="share-container" style="margin-top: 0;">
-              <input type="text" id="student-link-input" readonly />
-              <button class="tool-btn" style="flex: 0 0 auto;" onclick="copyStudentLink(this)">Copiar</button>
-            </div>
+        <div class="bio">
+          <div class="es-only">
+            <p>Abril toca el violín en la Canton Symphony Orchestra desde 2022 y colabora habitualmente con la Pittsburgh Opera, el Pittsburgh Ballet Theatre, la Erie Philharmonic y la Wheeling Symphony. Antes de llegar a Estados Unidos fue violinista de la Sinfónica Municipal de Caracas, con la que dio la vuelta al mundo en la gira del Peace Boat: tres meses, dieciocho países, de Tokio a Reikiavik.</p>
+            <p>Enseña desde 2007. Empezó en El Sistema venezolano, siguió en la Sinfónica Juvenil de Tacna, en Perú, y pasó dos años dando clases en las escuelas públicas de Aysén, en la Patagonia chilena, dentro de un programa que usaba la música para trabajar la confianza y la autoestima de los chicos. Hoy enseña en el Brighton Music Center y prepara a los alumnos de la Young Artist Debut Orchestra de Erie.</p>
           </div>
-          <div>
-            <button id="btn-toggle-student-auth" class="tool-btn" style="border-color: var(--warning); color: var(--warning);" onclick="toggleStudentPermissions()">
-              🔒 Alumno Bloqueado (Clic para permitir)
-            </button>
+          <div class="en-only">
+            <p>Abril has played violin with the Canton Symphony Orchestra since 2022 and performs regularly with Pittsburgh Opera, Pittsburgh Ballet Theatre, the Erie Philharmonic and the Wheeling Symphony. Before moving to the United States she played with the Municipal Symphony of Caracas, touring the world aboard the Peace Boat: three months, eighteen countries, Tokyo to Reykjavik.</p>
+            <p>She has taught since 2007 — first in Venezuela's El Sistema, then with the Tacna Youth Symphony in Peru, then two years teaching across the public schools of Aysén, in Chilean Patagonia, in a program that used music to build children's confidence. She now teaches at Brighton Music Center and coaches students of the Young Artist Debut Orchestra in Erie.</p>
           </div>
-        </div>
 
-        <!-- Enrutado del audio de las herramientas -->
-        <div class="audio-routing">
-          <span class="block-caption" data-i18n="routing_label">¿Dónde suenan el metrónomo y los drones?</span>
-          <div class="routing-switches">
-            <label class="switch">
-              <input type="checkbox" id="sw-local-audio" checked onchange="setLocalAudio(this.checked)" />
-              <span class="switch-track"></span>
-              <span class="switch-text" data-i18n="routing_local">En mi equipo</span>
-            </label>
-            <label class="switch">
-              <input type="checkbox" id="sw-remote-audio" checked onchange="setRemoteAudio(this.checked)" />
-              <span class="switch-track"></span>
-              <span class="switch-text" data-i18n="routing_remote">En el equipo del alumno</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div style="height: 1.5rem;"></div>
-
-      <!-- Controles Principales -->
-      <div class="controls-grid" id="main-controls">
-        
-        <!-- SECCIÓN DE VIDEOLLAMADA (ESTILO ZOOM PRO) -->
-        <div class="card-inner" style="grid-column: 1 / -1; padding: 1.4rem;">
-          <h4 data-i18n="video_heading">Videollamada Integrada</h4>
-          <p style="font-size: 0.85rem; color: var(--warning); margin-bottom: 1rem;" data-i18n="video_hint">⚠️ Obligatorio: El alumno debe usar audífonos/auriculares para evitar problemas de eco con el metrónomo.</p>
-          
-          <button class="btn-cta" id="btn-start-video" onclick="startVideo()" style="width: 100%; margin-bottom: 1rem;" data-i18n="btn_start_video">
-            Encender Cámara y Micrófono
+          <button class="more-btn" type="button" data-more="abril-more" aria-expanded="false" aria-controls="abril-more">
+            <span class="es-only">Ver trayectoria completa</span><span class="en-only">Full background</span>
           </button>
 
-          <!-- Contenedor Zoom (Oculto hasta encender cámara) -->
-          <div id="video-conference-container" class="pip-mode" style="display: none;">
-            
-            <div class="video-grid-layout" id="video-grid">
-              <!-- Video Remoto (El Grande) -->
-              <div class="video-box remote-box">
-                 <div class="video-placeholder" id="remote-placeholder" data-i18n="vid_remote_wait">Esperando a que la otra persona encienda su cámara...</div>
-                 <video id="remote-video" autoplay playsinline></video>
-                 <div class="video-label" data-i18n="vid_remote">Remoto</div>
-              </div>
-              
-              <!-- Video Local (El Pequeño Arrastrable) -->
-              <div class="video-box local-box" id="draggable-local">
-                 <div class="video-placeholder" id="local-placeholder" data-i18n="vid_local_wait">Tu cámara está apagada</div>
-                 <video id="local-video" autoplay playsinline muted></video>
-                 <div class="video-label">Tú</div>
-              </div>
-            </div>
-            
-            <!-- Barra de Controles Flotante / Inferior -->
-            <div class="call-controls-bar" id="call-controls">
-              <button class="call-btn" id="btn-toggle-mic" onclick="toggleMic()">🎤 <span data-i18n="btn_mute">Silenciar</span></button>
-              <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 <span data-i18n="btn_cam_off">Apagar Cámara</span></button>
-              <button class="call-btn" id="btn-toggle-layout" onclick="toggleViewLayout()">🔲 <span data-i18n="btn_layout">Cambiar Vista</span></button>
-              <button class="call-btn btn-fullscreen" onclick="toggleFullScreen()">⛶ <span data-i18n="btn_fullscreen">Pantalla Completa</span></button>
-            </div>
+          <div class="more-panel" id="abril-more" hidden>
+            <h4><span class="es-only">Orquestas</span><span class="en-only">Orchestras</span></h4>
+            <ul>
+              <li>Canton Symphony Orchestra <span class="es-only">— violín II (sección), desde 2022</span><span class="en-only">— second violin (section), since 2022</span></li>
+              <li>Westmoreland Symphony Orchestra <span class="es-only">— violín I (sección), 2022–2023</span><span class="en-only">— first violin (section), 2022–2023</span></li>
+              <li><span class="es-only">Sinfónica Municipal de Caracas — violín I (sección), 2015–2018</span><span class="en-only">Municipal Symphony of Caracas — first violin (section), 2015–2018</span></li>
+              <li><span class="es-only">Sinfónica del Estado Yaracuy, Venezuela — 2001–2015</span><span class="en-only">Yaracuy State Symphony, Venezuela — 2001–2015</span></li>
+              <li><span class="es-only">Colabora con Pittsburgh Opera, Pittsburgh Ballet Theatre, Wheeling, Youngstown, Erie Philharmonic, Butler County, Altoona y Washington Symphony</span><span class="en-only">Also performs with Pittsburgh Opera, Pittsburgh Ballet Theatre, Wheeling, Youngstown, Erie Philharmonic, Butler County, Altoona and Washington Symphony</span></li>
+            </ul>
+
+            <h4><span class="es-only">Como solista</span><span class="en-only">As soloist</span></h4>
+            <ul>
+              <li><span class="es-only">Bach, Concierto para dos violines BWV 1043 — Sinfónica Municipal de Caracas</span><span class="en-only">Bach, Double Violin Concerto BWV 1043 — Municipal Symphony of Caracas</span></li>
+              <li><span class="es-only">Corelli, Concerto grosso op. 6 n.º 4 — Sinfónica Municipal de Caracas</span><span class="en-only">Corelli, Concerto grosso op. 6 no. 4 — Municipal Symphony of Caracas</span></li>
+              <li><span class="es-only">Vivaldi, Concierto para cuatro violines RV 580 — Sinfónica del Estado Yaracuy</span><span class="en-only">Vivaldi, Concerto for Four Violins RV 580 — Yaracuy State Symphony</span></li>
+              <li><span class="es-only">Recital de máster, PNC Recital Hall, Duquesne University (2023)</span><span class="en-only">Graduate recital, PNC Recital Hall, Duquesne University (2023)</span></li>
+            </ul>
+
+            <h4><span class="es-only">Festivales y giras</span><span class="en-only">Festivals and tours</span></h4>
+            <ul>
+              <li>Buzzards Bay Musicfest · Sunflower Music Festival (2025, 2026)</li>
+              <li>Ohio Light Opera (2022)</li>
+              <li><span class="es-only">Gira mundial del Peace Boat con la Municipal de Caracas (2017)</span><span class="en-only">Peace Boat world tour with the Municipal of Caracas (2017)</span></li>
+              <li><span class="es-only">Festival de Inverno de Campos do Jordão, Brasil (2016)</span><span class="en-only">Campos do Jordão Winter Festival, Brazil (2016)</span></li>
+              <li><span class="es-only">Concierto con Andrea Bocelli (2024)</span><span class="en-only">Concert with Andrea Bocelli (2024)</span></li>
+            </ul>
+
+            <h4><span class="es-only">Enseñanza</span><span class="en-only">Teaching</span></h4>
+            <ul>
+              <li><span class="es-only">Brighton Music Center, Pittsburgh (desde 2024)</span><span class="en-only">Brighton Music Center, Pittsburgh (since 2024)</span></li>
+              <li><span class="es-only">Young Artist Debut Orchestra, Erie (desde 2023)</span><span class="en-only">Young Artist Debut Orchestra, Erie (since 2023)</span></li>
+              <li><span class="es-only">FOJI, orquestas juveniles de Chile — Aysén (2019–2021)</span><span class="en-only">FOJI, Chilean youth orchestras — Aysén (2019–2021)</span></li>
+              <li><span class="es-only">Sinfónica Juvenil e Infantil de Tacna, Perú (2018)</span><span class="en-only">Tacna Youth and Children's Symphony, Peru (2018)</span></li>
+              <li><span class="es-only">El Sistema, Venezuela (2007–2016)</span><span class="en-only">El Sistema, Venezuela (2007–2016)</span></li>
+              <li><span class="es-only">Curso de filosofía Suzuki, Asociación Suzuki del Perú (2021)</span><span class="en-only">Suzuki philosophy course, Peru Suzuki Association (2021)</span></li>
+            </ul>
           </div>
         </div>
+      </div>
+    </article>
 
-        <!-- Metrónomo -->
-        <div class="card-inner">
-          <div class="card-head">
-            <h4 data-i18n="metronome_heading">Metrónomo de Precisión</h4>
-            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
-          </div>
-
-          <!-- Lo que ve el alumno: un monitor, no una consola apagada -->
-          <div class="student-monitor">
-            <span class="monitor-caption" data-i18n="mon_tempo">Tempo de la clase</span>
-            <div class="monitor-value"><span id="mon-bpm">100</span><small>BPM</small><em id="mon-ts">4/4</em></div>
-          </div>
-
-          <div class="teacher-controls">
-            <div class="tempo-display" id="bpm-display">100</div>
-            <input type="range" id="tempo-slider" min="40" max="220" value="100" oninput="onTempoChange(this.value)" />
-            <div style="margin-bottom: 1rem;">
-              <div class="btn-group">
-                <button class="tool-btn ts-btn" id="ts-2" onclick="setTimeSignature(2)">2/4</button>
-                <button class="tool-btn ts-btn" id="ts-3" onclick="setTimeSignature(3)">3/4</button>
-                <button class="tool-btn ts-btn active" id="ts-4" onclick="setTimeSignature(4)">4/4</button>
-                <button class="tool-btn ts-btn" id="ts-6" onclick="setTimeSignature(6)">6/8</button>
-              </div>
-            </div>
-            <button class="tool-btn primary" style="width: 100%;" id="btn-play-metro" onclick="toggleMetronome()" data-i18n="btn_start_metro">Iniciar Metrónomo</button>
-          </div>
-
-          <!-- Pulso visual: el alumno ve el compás aunque tenga el violín en la barbilla -->
-          <div class="beat-dots" id="beat-dots"></div>
+    <article class="player">
+      <div class="player-grid">
+        <div>
+          <h3>Johann David Díaz Ramírez</h3>
+          <div class="role"><span class="es-only">Viola y violín</span><span class="en-only">Viola and violin</span></div>
+          <dl class="facts">
+            <div><dt><span class="es-only">Orquestas</span><span class="en-only">Orchestras</span></dt><dd>Pittsburgh Opera · Youngstown · Johnstown</dd></div>
+            <div><dt><span class="es-only">Formación</span><span class="en-only">Education</span></dt><dd>Duquesne University · LRSM</dd></div>
+            <div><dt><span class="es-only">Enseña desde</span><span class="en-only">Teaching since</span></dt><dd>2007</dd></div>
+            <div><dt><span class="es-only">Idiomas</span><span class="en-only">Languages</span></dt><dd><span class="es-only">Español, inglés</span><span class="en-only">Spanish, English</span></dd></div>
+          </dl>
         </div>
 
-        <!-- Afinación: LA de referencia + cuerdas al aire + teclado -->
-        <div class="card-inner" id="tuner-card">
-          <div class="card-head">
-            <h4 data-i18n="drone_heading">Drones de Afinación</h4>
-            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
+        <div class="bio">
+          <div class="es-only">
+            <p>Johann es violista de la Pittsburgh Opera Orchestra, la Youngstown Symphony y la Johnstown Symphony. Se formó en el Conservatorio Simón Bolívar de Caracas, fue violista principal de la Sinfónica Juvenil Francisco de Miranda y tocó en la Sinfónica Municipal de Caracas. Tiene el máster en interpretación de Duquesne y el título de Licentiate del Royal Schools of Music.</p>
+            <p>Ha tocado como solista los conciertos de Bartók y de Walton, y los solos de <em>Don Quijote</em> de Strauss con la Municipal de Caracas. Fuera del repertorio clásico ha compartido escenario con The Eagles, con Stewart Copeland y con Bersuit Vergarabat. Enseña violín y viola desde 2007: en Venezuela, Perú y Chile, y desde 2023 en los Johnstonbaugh's Music Centers de Pittsburgh.</p>
+          </div>
+          <div class="en-only">
+            <p>Johann plays viola with the Pittsburgh Opera Orchestra, the Youngstown Symphony and the Johnstown Symphony. He trained at the Simón Bolívar Conservatory in Caracas, was principal violist of the Francisco de Miranda Youth Symphony and played with the Municipal Symphony of Caracas. He holds a master's in performance from Duquesne and a Licentiate from the Royal Schools of Music.</p>
+            <p>As a soloist he has performed the Bartók and Walton concertos and the <em>Don Quixote</em> viola solos with the Municipal of Caracas. Outside the classical repertoire he has shared a stage with The Eagles, Stewart Copeland and Bersuit Vergarabat. He has taught violin and viola since 2007: in Venezuela, Peru and Chile, and since 2023 at Johnstonbaugh's Music Centers in Pittsburgh.</p>
           </div>
 
-          <div class="student-monitor">
-            <span class="monitor-caption" data-i18n="mon_pitch">Nota de referencia</span>
-            <div class="monitor-value"><span id="mon-note">—</span></div>
-            <div class="monitor-sub">LA = <span id="mon-a4">440</span> Hz</div>
-          </div>
+          <button class="more-btn" type="button" data-more="johann-more" aria-expanded="false" aria-controls="johann-more">
+            <span class="es-only">Ver trayectoria completa</span><span class="en-only">Full background</span>
+          </button>
 
-          <div class="teacher-controls">
-          <div class="tuner-top">
-            <!-- Calibración del LA -->
-            <div class="tuner-block">
-              <span class="block-caption" data-i18n="calib_label">LA de referencia</span>
-              <div class="calib-row">
-                <button class="calib-step" onclick="changeA4(-1)" aria-label="-1 Hz">−</button>
-                <div class="calib-value"><span id="a4-value">440</span><small>Hz</small></div>
-                <button class="calib-step" onclick="changeA4(1)" aria-label="+1 Hz">+</button>
-              </div>
-              <div class="calib-presets">
-                <button class="preset-btn" data-hz="415" onclick="setA4(415)">415</button>
-                <button class="preset-btn" data-hz="430" onclick="setA4(430)">430</button>
-                <button class="preset-btn" data-hz="440" onclick="setA4(440)">440</button>
-                <button class="preset-btn" data-hz="441" onclick="setA4(441)">441</button>
-                <button class="preset-btn" data-hz="442" onclick="setA4(442)">442</button>
-                <button class="preset-btn" data-hz="443" onclick="setA4(443)">443</button>
-                <button class="preset-btn" data-hz="444" onclick="setA4(444)">444</button>
-              </div>
-            </div>
+          <div class="more-panel" id="johann-more" hidden>
+            <h4><span class="es-only">Orquestas</span><span class="en-only">Orchestras</span></h4>
+            <ul>
+              <li>Pittsburgh Opera Orchestra <span class="es-only">— desde 2024</span><span class="en-only">— since 2024</span></li>
+              <li>Youngstown Symphony Orchestra <span class="es-only">— desde 2024</span><span class="en-only">— since 2024</span></li>
+              <li>Johnstown Symphony Orchestra <span class="es-only">— desde 2025</span><span class="en-only">— since 2025</span></li>
+              <li><span class="es-only">Sinfónica Municipal de Caracas — viola, 2015–2018</span><span class="en-only">Municipal Symphony of Caracas — viola, 2015–2018</span></li>
+              <li><span class="es-only">Sinfónica Juvenil Francisco de Miranda — viola principal, 2012–2014</span><span class="en-only">Francisco de Miranda Youth Symphony — principal viola, 2012–2014</span></li>
+              <li><span class="es-only">Sustituto en Canton, Erie Philharmonic, Wheeling, Westmoreland, Butler County, Altoona y Washington Symphony</span><span class="en-only">Substitute with Canton, Erie Philharmonic, Wheeling, Westmoreland, Butler County, Altoona and Washington Symphony</span></li>
+            </ul>
 
-            <!-- Cuerdas al aire -->
-            <div class="tuner-block">
-              <span class="block-caption" data-i18n="open_strings">Cuerdas al aire</span>
-              <div class="drone-grid">
-                <button class="drone-btn" data-midi="48" onclick="toggleDrone(48)"></button>
-                <button class="drone-btn" data-midi="55" onclick="toggleDrone(55)"></button>
-                <button class="drone-btn" data-midi="62" onclick="toggleDrone(62)"></button>
-                <button class="drone-btn" data-midi="69" onclick="toggleDrone(69)"></button>
-                <button class="drone-btn" data-midi="76" onclick="toggleDrone(76)"></button>
-              </div>
-            </div>
-          </div>
+            <h4><span class="es-only">Como solista</span><span class="en-only">As soloist</span></h4>
+            <ul>
+              <li><span class="es-only">Concierto para viola de Bartók y concierto de Walton (Santo Domingo, 2019)</span><span class="en-only">Bartók Viola Concerto and Walton Viola Concerto (Santo Domingo, 2019)</span></li>
+              <li><span class="es-only">Strauss, <em>Don Quijote</em> op. 35 — solos de viola, Caracas (2016)</span><span class="en-only">Strauss, <em>Don Quixote</em> op. 35 — viola solos, Caracas (2016)</span></li>
+              <li><span class="es-only">Bach, 3.ª Suite y <em>Cadenza</em> de Penderecki (Duquesne, 2023)</span><span class="en-only">Bach, Third Suite and Penderecki's <em>Cadenza</em> (Duquesne, 2023)</span></li>
+            </ul>
 
-          <!-- Teclado -->
-          <div class="keyboard-bar">
-            <span class="block-caption" data-i18n="keyboard_label">Teclado cromático</span>
-            <div class="octave-controls">
-              <button class="tool-btn octave-btn" onclick="shiftOctave(-1)">−8va</button>
-              <span class="range-label" id="kb-range">—</span>
-              <button class="tool-btn octave-btn" onclick="shiftOctave(1)">+8va</button>
-            </div>
-          </div>
-          <div class="keyboard-scroll">
-            <div class="piano" id="piano"></div>
-          </div>
+            <h4><span class="es-only">Música de cámara y festivales</span><span class="en-only">Chamber music and festivals</span></h4>
+            <ul>
+              <li>Sunflower Music Festival, Topeka · Buzzards Bay Musicfest, Marion</li>
+              <li><span class="es-only">Gira internacional con la Municipal de Caracas: Japón, Singapur, Tailandia, Sri Lanka, Italia, España, Portugal, Francia y Rusia (2017)</span><span class="en-only">International tour with the Municipal of Caracas: Japan, Singapore, Thailand, Sri Lanka, Italy, Spain, Portugal, France and Russia (2017)</span></li>
+              <li><span class="es-only">Festival de Inverno de Campos do Jordão, Brasil (2016)</span><span class="en-only">Campos do Jordão Winter Festival, Brazil (2016)</span></li>
+              <li><span class="es-only">Gira de aniversario de Guayaquil, Ecuador (2010)</span><span class="en-only">Guayaquil anniversary tour, Ecuador (2010)</span></li>
+            </ul>
 
-          <div class="tuner-footer">
-            <div class="now-playing" id="drone-readout">—</div>
-            <button class="tool-btn" onclick="stopDrone()" data-i18n="btn_stop_drone">Detener Afinador</button>
-          </div>
+            <h4><span class="es-only">Enseñanza</span><span class="en-only">Teaching</span></h4>
+            <ul>
+              <li><span class="es-only">Johnstonbaugh's Music Centers, Pittsburgh (desde 2023)</span><span class="en-only">Johnstonbaugh's Music Centers, Pittsburgh (since 2023)</span></li>
+              <li><span class="es-only">Orquesta Comunal de Aysén, Chile (2019–2021)</span><span class="en-only">Aysén Community Orchestra, Chile (2019–2021)</span></li>
+              <li><span class="es-only">Sinfónica Juvenil de Tacna, Perú (2017–2019)</span><span class="en-only">Tacna Youth Symphony, Peru (2017–2019)</span></li>
+              <li><span class="es-only">Orquestas de El Sistema, Venezuela (2007–2015)</span><span class="en-only">El Sistema orchestras, Venezuela (2007–2015)</span></li>
+              <li><span class="es-only">Filosofía Suzuki</span><span class="en-only">Suzuki philosophy</span></li>
+            </ul>
           </div>
         </div>
+      </div>
+    </article>
 
+  </div>
+</section>
+
+<!-- El aula -->
+<section class="classroom-band">
+  <div class="wrap">
+    <div class="section-head">
+      <h2><span class="es-only">Las clases en línea se dan aquí</span><span class="en-only">Online lessons happen here</span></h2>
+      <p>
+        <span class="es-only">Una clase de cuerdas por videollamada corriente tiene un problema: el metrónomo del profesor llega tarde y distorsionado, y la afinación no se puede comparar. Construimos un aula que resuelve las dos cosas.</span>
+        <span class="en-only">A strings lesson over a normal video call has a problem: the teacher's metronome arrives late and distorted, and intonation can't be compared. We built a classroom that fixes both.</span>
+      </p>
+    </div>
+
+    <div class="tool-list">
+      <div>
+        <h3><span class="es-only">Metrónomo compartido</span><span class="en-only">Shared metronome</span></h3>
+        <p><span class="es-only">No viaja como sonido: lo genera cada equipo. El alumno oye un clic limpio, en el tempo y el compás que marca el profesor.</span><span class="en-only">It doesn't travel as audio: each computer generates it. The student hears a clean click at the tempo and meter the teacher sets.</span></p>
+      </div>
+      <div>
+        <h3><span class="es-only">Afinador con LA calibrable</span><span class="en-only">Tuner with adjustable A</span></h3>
+        <p><span class="es-only">Teclado de tres octavas y cuerdas al aire, con el LA de referencia entre 415 y 466 Hz. Los dos afinan a la misma referencia.</span><span class="en-only">A three-octave keyboard and open strings, with the reference A between 415 and 466 Hz. Both sides tune to the same pitch.</span></p>
+      </div>
+      <div>
+        <h3><span class="es-only">Video con las manos a la vista</span><span class="en-only">Video that shows the hands</span></h3>
+        <p><span class="es-only">Vista grande, pantalla completa y ventana propia movible, para dejar el arco o la mano izquierda donde se vean.</span><span class="en-only">Large view, fullscreen, and a movable self-view, so the bow or the left hand stays visible.</span></p>
       </div>
     </div>
-  </section>
 
-  <!-- Profesores -->
-  <section id="teachers" class="container">
-    <div class="teachers-grid">
-      <div class="teacher-card">
-        <h3>Abril C. Núñez</h3>
-        <div class="tagline">Violinista | Master of Music</div>
-        <p>Miembro de Canton Symphony Orchestra, colabora regularmente con Pittsburgh Opera, Wheeling Symphony y Erie Philharmonic.</p>
+    <a href="aula.html" class="btn btn-line"><span class="es-only">Entrar al aula</span><span class="en-only">Enter the classroom</span></a>
+  </div>
+</section>
+
+<!-- Solicitud -->
+<section id="solicitar" class="request">
+  <div class="wrap narrow">
+    <div class="section-head">
+      <h2><span class="es-only">Solicitar una clase</span><span class="en-only">Request a lesson</span></h2>
+      <p>
+        <span class="es-only">Cuéntanos qué buscas y cuándo te viene bien. Respondemos en uno o dos días con los horarios libres y el precio.</span>
+        <span class="en-only">Tell us what you're looking for and when you're free. We reply within a day or two with available times and pricing.</span>
+      </p>
+    </div>
+
+    <form id="request-form" novalidate>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-name"><span class="es-only">Nombre</span><span class="en-only">Name</span></label>
+          <input type="text" id="f-name" name="name" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="f-email"><span class="es-only">Correo</span><span class="en-only">Email</span></label>
+          <input type="email" id="f-email" name="email" autocomplete="email" />
+        </div>
       </div>
-      <div class="teacher-card">
-        <h3>Johann David Díaz Ramírez</h3>
-        <div class="tagline">Violista y Violinista | Master of Music | LRSM</div>
-        <p>Músico de la Pittsburgh Opera Orchestra, Youngstown Symphony y Johnstown Symphony.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="f-phone"><span class="es-only">Teléfono (opcional)</span><span class="en-only">Phone (optional)</span></label>
+          <input type="tel" id="f-phone" name="phone" autocomplete="tel" />
+        </div>
+        <div class="field">
+          <label for="f-age"><span class="es-only">Edad del alumno</span><span class="en-only">Student's age</span></label>
+          <input type="text" id="f-age" name="age" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="f-instrument"><span class="es-only">Instrumento</span><span class="en-only">Instrument</span></label>
+          <select id="f-instrument" name="instrument">
+            <option>Violín / Violin</option>
+            <option>Viola</option>
+            <option data-es="Aún no lo decido" data-en="Not sure yet">Aún no lo decido</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-level"><span class="es-only">Nivel</span><span class="en-only">Level</span></label>
+          <select id="f-level" name="level">
+            <option data-es="Empiezo desde cero" data-en="Complete beginner">Empiezo desde cero</option>
+            <option data-es="Llevo un tiempo tocando" data-en="Been playing a while">Llevo un tiempo tocando</option>
+            <option data-es="Nivel avanzado" data-en="Advanced">Nivel avanzado</option>
+            <option data-es="Retomo después de años" data-en="Returning after years">Retomo después de años</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="f-mode"><span class="es-only">Modalidad</span><span class="en-only">Format</span></label>
+          <select id="f-mode" name="mode">
+            <option data-es="Presencial en Pittsburgh" data-en="In person in Pittsburgh">Presencial en Pittsburgh</option>
+            <option data-es="En línea" data-en="Online">En línea</option>
+            <option data-es="Cualquiera de las dos" data-en="Either one">Cualquiera de las dos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-teacher"><span class="es-only">Profesor</span><span class="en-only">Teacher</span></label>
+          <select id="f-teacher" name="teacher">
+            <option data-es="El que tenga hueco" data-en="Whoever has room">El que tenga hueco</option>
+            <option>Abril Núñez</option>
+            <option>Johann Díaz</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="legend"><span class="es-only">¿Cuándo te viene bien?</span><span class="en-only">When are you free?</span></span>
+        <p class="help">
+          <span class="es-only">Marca todas las franjas que te sirvan. Horario de Pittsburgh (ET).</span>
+          <span class="en-only">Mark every block that works for you. Pittsburgh time (ET).</span>
+        </p>
+        <div class="slots">
+          <table id="slot-grid">
+            <thead><tr id="slot-head"></tr></thead>
+            <tbody id="slot-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-message"><span class="es-only">Algo más que debamos saber</span><span class="en-only">Anything else we should know</span></label>
+        <textarea id="f-message" name="message"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-solid"><span class="es-only">Enviar solicitud</span><span class="en-only">Send request</span></button>
+      <p class="form-error" id="form-error" hidden></p>
+
+      <p class="form-note">
+        <span class="es-only">Esto es una solicitud, no una reserva confirmada: te escribimos para acordar el horario definitivo.</span>
+        <span class="en-only">This is a request, not a confirmed booking: we'll write back to agree on a time.</span>
+      </p>
+    </form>
+
+    <div class="form-ok" id="form-ok" hidden>
+      <p id="form-ok-text"></p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h4><span class="es-only">Contacto</span><span class="en-only">Contact</span></h4>
+        <p><a href="mailto:johannviolista@hotmail.com">johannviolista@hotmail.com</a></p>
+        <p><a href="tel:+14129837807">+1 412 983 7807</a></p>
+      </div>
+      <div>
+        <h4><span class="es-only">Dónde</span><span class="en-only">Where</span></h4>
+        <p><span class="es-only">Pittsburgh, Pensilvania, y en línea desde cualquier sitio.</span><span class="en-only">Pittsburgh, Pennsylvania, and online from anywhere.</span></p>
+      </div>
+      <div>
+        <h4><span class="es-only">Idiomas de clase</span><span class="en-only">Lesson languages</span></h4>
+        <p><span class="es-only">Español e inglés</span><span class="en-only">Spanish and English</span></p>
       </div>
     </div>
-  </section>
+    <div class="foot-base">
+      <p>&copy; 2026 Díaz-Núñez Music Studio</p>
+    </div>
+  </div>
+</footer>
 
-  <footer>
-    <p>&copy; 2026 Díaz-Núñez Music Studio. Todos los derechos reservados.</p>
-  </footer>
-
-  <script src="app.js"></script>
+<script src="home.js"></script>
 </body>
 </html>
