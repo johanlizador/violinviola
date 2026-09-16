@@ -125,8 +125,8 @@ function setStatus(key, state) {
   document.getElementById('status-dot').className = 'dot ' + state;
 }
 
-const TURN_USER = "";
-const TURN_PASS = "";
+const TURN_USER = "Johannviolista@hotmail.com";
+const TURN_PASS = "KL7iiLaPXLyL@e4";
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' }
