@@ -134,10 +134,10 @@ const ICE_SERVERS = [
 
 if (TURN_USER && TURN_PASS) {
   ICE_SERVERS.push(
-    { urls: 'turn:standard.relay.metered.ca:80',            username: TURN_USER, credential: TURN_PASS },
-    { urls: 'turn:standard.relay.metered.ca:80?transport=tcp',  username: TURN_USER, credential: TURN_PASS },
-    { urls: 'turn:standard.relay.metered.ca:443',           username: TURN_USER, credential: TURN_PASS },
-    { urls: 'turns:standard.relay.metered.ca:443?transport=tcp', username: TURN_USER, credential: TURN_PASS }
+    { urls: 'turn:violinandviolastudio.relay.metered.ca:80',            username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turn:violinandviolastudio.relay.metered.ca:80?transport=tcp',  username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turn:violinandviolastudio.relay.metered.ca:443',           username: TURN_USER, credential: TURN_PASS },
+    { urls: 'turns:violinandviolastudio.relay.metered.ca:443?transport=tcp', username: TURN_USER, credential: TURN_PASS }
   );
 }
 
@@ -330,7 +330,6 @@ function forceUnlockAudio() {
   try {
       const ctx = getAudioContext();
       ctx.resume();
-      // Reproducir 10ms de silencio absoluto para engañar a iOS/Safari
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       gain.gain.value = 0;
@@ -361,7 +360,6 @@ async function studentEnterClass() {
     return;
   }
 
-  // Desbloqueo estricto del audio
   forceUnlockAudio();
 
   if (!await prepareMedia()) return;
@@ -416,8 +414,6 @@ function setupConn(conn) {
     
     if (currentRole === 'student' && studentName) {
         sendPeerMessage({ type: 'HELLO', name: studentName });
-        // SOLAMENTE EL ALUMNO INICIA LA LLAMADA DE VIDEO
-        // Esto evita que ambos navegadores choquen y anulen el audio
         if (localStream && conn.peer && !currentCall) {
             makeCall(conn.peer);
         }
@@ -482,15 +478,13 @@ async function startVideo() {
     document.getElementById('video-conference-container').style.display = 'flex';
 
     // Evitar iniciar una llamada si ya hay una en curso o pendiente
-    if (activeConnection && activeConnection.peer && !currentCall) {
-       makeCall(activeConnection.peer);
-    }
-    
     if (pendingCall) {
       currentCall = pendingCall;          
       currentCall.answer(localStream);
       setupCallEvents(currentCall);
       pendingCall = null;
+    } else if (activeConnection && activeConnection.peer && !currentCall) {
+       makeCall(activeConnection.peer);
     }
   } catch(err) {
     console.error("Error media:", err);
