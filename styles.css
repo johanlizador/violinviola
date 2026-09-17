@@ -643,3 +643,7 @@ body.fs-lock { overflow: hidden; }
   .calib-step { width: 36px; font-size: 1.2rem; }
   .preset-btn { font-size: 0.75rem; padding: 0.3rem; }
 }
+/* Efecto espejo para la cámara local en el aula */
+#local-video {
+  transform: scaleX(-1);
+}
