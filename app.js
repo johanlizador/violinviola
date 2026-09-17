@@ -99,6 +99,10 @@ function initSystem() {
   } else {
     document.getElementById('teacher-login-panel').style.display = 'block';
   }
+
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+     navigator.mediaDevices.addEventListener('devicechange', populateAudioOutputs);
+  }
 }
 
 function authenticateTeacher() {
@@ -242,17 +246,19 @@ function initPeerClient() {
   setupCallListener();
 }
 
-async function getReliableMediaStream(videoEnabled) {
+/* FIX: Solicitar Audio y Video de manera completamente independiente */
+async function getReliableMediaStream(reqVideo, reqAudio) {
   try {
+    let audioConfig = reqAudio ? { echoCancellation: true, noiseSuppression: false, autoGainControl: false } : false;
     return await navigator.mediaDevices.getUserMedia({
-      video: videoEnabled,
-      audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      video: reqVideo,
+      audio: audioConfig
     });
   } catch (err) {
-    console.warn('[aula] Las restricciones para música fallaron, forzando audio estándar:', err);
+    console.warn('[aula] Las restricciones para música fallaron, forzando estándar:', err);
     return await navigator.mediaDevices.getUserMedia({
-      video: videoEnabled,
-      audio: true 
+      video: reqVideo,
+      audio: reqAudio 
     });
   }
 }
@@ -263,7 +269,7 @@ let micMeterRAF = null;
 async function prepareMedia() {
   try {
     if (!localStream) {
-      localStream = await getReliableMediaStream(true);
+      localStream = await getReliableMediaStream(true, true);
     }
     const prev = document.getElementById('lobby-video');
     if (prev) {
@@ -274,6 +280,7 @@ async function prepareMedia() {
     if (empty) empty.style.display = 'none';
     startMicMeter();
     document.getElementById('permission-help').hidden = true;
+    populateAudioOutputs();
     return true;
   } catch (err) {
     showPermissionHelp(err);
@@ -325,7 +332,6 @@ function showPermissionHelp(err) {
   caja.hidden = false;
 }
 
-/* FIX CRÍTICO: Desbloquear los motores de audio al clickear */
 function forceUnlockAudio() {
   try {
       const ctx = getAudioContext();
@@ -398,7 +404,6 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && !wakeLock && hasJoined) keepScreenAwake();
 });
 
-/* FIX CRÍTICO: Prevenir doble llamada y cruce de conexiones */
 function setupConn(conn) {
   watchIce(conn);
   conn.on('open', () => { 
@@ -425,7 +430,6 @@ function setupConn(conn) {
   conn.on('close', () => { setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
 }
 
-/* FIX CRÍTICO: Asegurar que el mensaje espere a que el canal esté abierto */
 function sendPeerMessage(msg) { 
     if (!activeConnection) return;
     if (activeConnection.open) {
@@ -466,7 +470,7 @@ async function startVideo() {
   btn.innerText = translations[currentLang].vid_starting;
 
   try {
-    localStream = await getReliableMediaStream(true);
+    localStream = await getReliableMediaStream(true, true);
 
     const localVid = document.getElementById('local-video');
     localVid.srcObject = localStream;
@@ -476,8 +480,8 @@ async function startVideo() {
     btn.style.display = 'none'; 
     
     document.getElementById('video-conference-container').style.display = 'flex';
+    populateAudioOutputs(); 
 
-    // Evitar iniciar una llamada si ya hay una en curso o pendiente
     if (pendingCall) {
       currentCall = pendingCall;          
       currentCall.answer(localStream);
@@ -494,11 +498,67 @@ async function startVideo() {
   }
 }
 
-function toggleMic() {
+/* FIX: Desconexión física total de las pistas de audio */
+function stopAllAudioTracks() {
   if (!localStream) return;
-  isMicOn = !isMicOn;
-  localStream.getAudioTracks().forEach(track => track.enabled = isMicOn);
-  document.getElementById('btn-toggle-mic').classList.toggle('disabled', !isMicOn);
+  localStream.getAudioTracks().forEach(t => {
+    t.stop();
+    try { localStream.removeTrack(t); } catch (e) {}
+  });
+}
+
+function audioSender() {
+  const pc = currentCall && currentCall.peerConnection;
+  if (!pc) return null;
+  const transceivers = pc.getTransceivers();
+  if (transceivers && transceivers.length > 0) {
+      const t = transceivers.find(t => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio');
+      if (t) return t.sender;
+  }
+  return pc.getSenders().find(s => s.track && s.track.kind === 'audio');
+}
+
+async function ensureAudioNegotiated(pista) {
+  const sender = audioSender();
+  if (sender) {
+    await sender.replaceTrack(pista).catch(e => console.warn(e));
+    return;
+  }
+  const remoto = (currentCall && currentCall.peer) || (activeConnection && activeConnection.peer);
+  if (!remoto) return;
+  try { if (currentCall) currentCall.close(); } catch (e) {}
+  currentCall = null;
+  makeCall(remoto);
+}
+
+async function toggleMic() {
+  if (!localStream) return;
+  const btn = document.getElementById('btn-toggle-mic');
+  btn.disabled = true;
+
+  try {
+    if (isMicOn) {
+      stopAllAudioTracks(); // Libera el hardware por completo
+      isMicOn = false;
+      try {
+        const sender = audioSender();
+        if (sender) await sender.replaceTrack(null);
+      } catch (e) { console.warn('[aula] Error muting audio:', e); }
+    } else {
+      const fresca = await getReliableMediaStream(false, true); // Pide solo el micrófono de nuevo
+      const pista = fresca.getAudioTracks()[0];
+      localStream.addTrack(pista);
+
+      await ensureAudioNegotiated(pista);
+      isMicOn = true;
+    }
+  } catch (err) {
+    console.error('[aula] no se pudo cambiar el micrófono:', err);
+    showPermissionHelp(err);
+  }
+
+  btn.disabled = false;
+  btn.classList.toggle('disabled', !isMicOn);
   updateMediaButtonsText();
 }
 
@@ -529,6 +589,17 @@ function stopAllVideoTracks() {
   return detenidas;
 }
 
+function videoSender() {
+  const pc = currentCall && currentCall.peerConnection;
+  if (!pc) return null;
+  const transceivers = pc.getTransceivers();
+  if (transceivers && transceivers.length > 0) {
+      const t = transceivers.find(t => t.receiver && t.receiver.track && t.receiver.track.kind === 'video');
+      if (t) return t.sender;
+  }
+  return pc.getSenders().find(s => s.track && s.track.kind === 'video');
+}
+
 async function ensureVideoNegotiated(pista) {
   const sender = videoSender();
   if (sender) {
@@ -542,13 +613,6 @@ async function ensureVideoNegotiated(pista) {
   try { if (currentCall) currentCall.close(); } catch (e) {}
   currentCall = null;
   makeCall(remoto);
-}
-
-function videoSender() {
-  const pc = currentCall && currentCall.peerConnection;
-  if (!pc) return null;
-  return pc.getSenders().find(s => s.track && s.track.kind === 'video')
-      || pc.getSenders().find(s => !s.track);
 }
 
 async function toggleCam() {
@@ -568,7 +632,7 @@ async function toggleCam() {
       sendPeerMessage({ type: 'CAM_STATE', on: false });
 
     } else {
-      const fresca = await getReliableMediaStream(true);
+      const fresca = await getReliableMediaStream(true, false); // Pide solo la cámara
       const pista = fresca.getVideoTracks()[0];
       localStream.addTrack(pista);
       const localVid = document.getElementById('local-video');
@@ -1104,6 +1168,54 @@ function handleData(data) {
   else if (data.type === 'TUNING_CHANGE') { setA4(data.a4, false); }
   else if (data.type === 'DRONE_START') { toggleDrone(data.midi, false); }
   else if (data.type === 'DRONE_STOP') { stopDrone(false); }
+}
+
+/* 7. SELECTOR DE DISPOSITIVO DE SALIDA DE AUDIO */
+async function populateAudioOutputs() {
+  const select = document.getElementById('audio-output-select');
+  if (!select || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+    
+    if (audioOutputs.length > 0 && audioOutputs[0].label !== '') {
+      const currentVal = select.value;
+      select.innerHTML = ''; 
+      audioOutputs.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.text = device.label || `Altavoz ${select.length + 1}`;
+        select.appendChild(option);
+      });
+      if (Array.from(select.options).some(opt => opt.value === currentVal)) {
+        select.value = currentVal;
+      }
+    }
+  } catch (e) {
+    console.warn("[aula] No se pudieron listar las salidas de audio:", e);
+  }
+}
+
+async function changeAudioOutput(deviceId) {
+  const remoteVid = document.getElementById('remote-video');
+  if (remoteVid && typeof remoteVid.setSinkId === 'function') {
+    try {
+      await remoteVid.setSinkId(deviceId);
+    } catch (e) {
+      console.warn("[aula] Error al cambiar salida de video:", e);
+    }
+  } else {
+     console.warn("[aula] Navegador no soporta setSinkId en video (ej. Safari/iOS).");
+  }
+
+  if (audioCtx && typeof audioCtx.setSinkId === 'function') {
+    try {
+      await audioCtx.setSinkId(deviceId);
+    } catch (e) {
+      console.warn("[aula] Error al cambiar salida de Web Audio API:", e);
+    }
+  }
 }
 
 window.addEventListener('load', initSystem);
