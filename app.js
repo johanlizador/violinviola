@@ -102,7 +102,8 @@ function initSystem() {
     document.getElementById('teacher-login-panel').style.display = 'block';
   }
 
-  // Detectar conexiones de nuevos auriculares
+  // Llenar listas de audio si ya hay permisos concedidos previamente
+  populateAudioOutputs();
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
      navigator.mediaDevices.addEventListener('devicechange', populateAudioOutputs);
   }
@@ -249,7 +250,7 @@ function initPeerClient() {
   setupCallListener();
 }
 
-/* FIX: Solicitar Audio y Video de manera completamente independiente */
+/* Solicitar Audio y Video */
 async function getReliableMediaStream(reqVideo, reqAudio) {
   try {
     let audioConfig = reqAudio ? { echoCancellation: true, noiseSuppression: false, autoGainControl: false } : false;
@@ -283,7 +284,7 @@ async function prepareMedia() {
     if (empty) empty.style.display = 'none';
     startMicMeter();
     document.getElementById('permission-help').hidden = true;
-    populateAudioOutputs(); // Cargar salidas tras permisos
+    populateAudioOutputs();
     return true;
   } catch (err) {
     showPermissionHelp(err);
@@ -467,9 +468,9 @@ let pendingCall = null;
 let isMicOn = true;
 let isCamOn = true;
 let isFullScreen = false;
-let isMirrored = true; // Por defecto lo activamos
+let isMirrored = true;
 
-/* Función para alternar el Espejo */
+/* Alternar Espejo */
 function toggleMirror() {
   isMirrored = !isMirrored;
   const localVid = document.getElementById('local-video');
@@ -514,7 +515,6 @@ async function startVideo() {
   }
 }
 
-/* FIX: Desconexión física total de las pistas de audio */
 function stopAllAudioTracks() {
   if (!localStream) return;
   localStream.getAudioTracks().forEach(t => {
@@ -554,14 +554,14 @@ async function toggleMic() {
 
   try {
     if (isMicOn) {
-      stopAllAudioTracks(); // Libera el hardware por completo
+      stopAllAudioTracks();
       isMicOn = false;
       try {
         const sender = audioSender();
         if (sender) await sender.replaceTrack(null);
       } catch (e) { console.warn('[aula] Error muting audio:', e); }
     } else {
-      const fresca = await getReliableMediaStream(false, true); // Pide solo el micrófono de nuevo
+      const fresca = await getReliableMediaStream(false, true); 
       const pista = fresca.getAudioTracks()[0];
       localStream.addTrack(pista);
 
@@ -648,7 +648,7 @@ async function toggleCam() {
       sendPeerMessage({ type: 'CAM_STATE', on: false });
 
     } else {
-      const fresca = await getReliableMediaStream(true, false); // Pide solo la cámara
+      const fresca = await getReliableMediaStream(true, false); 
       const pista = fresca.getVideoTracks()[0];
       localStream.addTrack(pista);
       const localVid = document.getElementById('local-video');
@@ -1188,27 +1188,29 @@ function handleData(data) {
   else if (data.type === 'DRONE_STOP') { stopDrone(false); }
 }
 
-/* 7. SELECTOR DE DISPOSITIVO DE SALIDA DE AUDIO */
+/* 7. SELECTOR DE DISPOSITIVO DE SALIDA DE AUDIO (Sincronizado) */
 async function populateAudioOutputs() {
-  const select = document.getElementById('audio-output-select');
-  if (!select || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  const selects = document.querySelectorAll('.audio-output-select');
+  if (selects.length === 0 || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
 
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
     
     if (audioOutputs.length > 0 && audioOutputs[0].label !== '') {
-      const currentVal = select.value;
-      select.innerHTML = ''; 
-      audioOutputs.forEach(device => {
-        const option = document.createElement('option');
-        option.value = device.deviceId;
-        option.text = device.label || `Altavoz ${select.length + 1}`;
-        select.appendChild(option);
+      selects.forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = ''; 
+        audioOutputs.forEach(device => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `Altavoz ${select.options.length + 1}`;
+          select.appendChild(option);
+        });
+        if (Array.from(select.options).some(opt => opt.value === currentVal)) {
+          select.value = currentVal;
+        }
       });
-      if (Array.from(select.options).some(opt => opt.value === currentVal)) {
-        select.value = currentVal;
-      }
     }
   } catch (e) {
     console.warn("[aula] No se pudieron listar las salidas de audio:", e);
@@ -1216,6 +1218,9 @@ async function populateAudioOutputs() {
 }
 
 async function changeAudioOutput(deviceId) {
+  // Sincronizar todos los menús desplegables de la pantalla
+  document.querySelectorAll('.audio-output-select').forEach(sel => sel.value = deviceId);
+
   const remoteVid = document.getElementById('remote-video');
   if (remoteVid && typeof remoteVid.setSinkId === 'function') {
     try {
