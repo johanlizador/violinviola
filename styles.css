@@ -1,0 +1,696 @@
+:root { --bg-main: #0d1117; --bg-card: #161b22; --bg-card-hover: #1f242c; --border-color: #30363d; --accent-gold: #e5a93c; --accent-gold-hover: #f3be5d; --text-main: #f0f6fc; --text-muted: #8b949e; --success: #2ea043; --danger: #da3633; --warning: #d29922; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-family); line-height: 1.6; scroll-behavior: smooth; }
+header { position: sticky; top: 0; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; }
+nav { display: flex; align-items: center; gap: 1.2rem; }
+nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; }
+nav a:hover { color: var(--text-main); }
+.lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.2rem; }
+.hero { text-align: center; padding: 4rem 1rem 3rem 1rem; border-bottom: 1px solid var(--border-color); }
+.hero h1 { font-size: 2.6rem; margin-bottom: 1rem; color: #fff; }
+.hero p { color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem auto; font-size: 1.15rem; }
+.btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-cta:hover { background: var(--accent-gold-hover); transform: translateY(-2px); }
+.section-title { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent-gold); }
+
+.studio-box { background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: 14px; padding: 2rem; margin: 3rem 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+.studio-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; background: #21262d; border: 1px solid var(--border-color); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 5px rgba(255,255,255,0.2); }
+.dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+#teacher-login-panel { text-align: center; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-main); }
+.login-input { padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: #090d12; color: var(--accent-gold); margin-right: 0.5rem; outline: none; font-size: 1rem; text-align: center; letter-spacing: 2px; }
+
+#teacher-share-box { display: none; margin-bottom: 1.5rem; }
+
+.controls-grid { display: none; grid-template-columns: 1fr; gap: 1.5rem; }
+.card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; position: relative; }
+
+.lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.6); z-index: 10; border-radius: 10px; display: none; cursor: not-allowed; }
+
+.tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
+input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
+.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
+.tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
+.tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
+
+.drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
+.drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; }
+.drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
+
+.share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
+
+/* ======== ESTILOS ZOOM PRO (PIP Y GALERÍA) ======== */
+#video-conference-container {
+  display: flex;
+  flex-direction: column;
+  background: #050505;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.video-grid-layout {
+  position: relative;
+  width: 100%;
+  height: 500px; /* Altura base */
+  background: #000;
+  overflow: hidden;
+}
+
+.video-box { position: relative; display: flex; align-items: center; justify-content: center; }
+.video-box video { width: 100%; height: 100%; object-fit: contain; }
+.video-label { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #fff; z-index: 5; pointer-events: none; }
+.video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); font-size: 0.95rem; padding: 1rem; z-index: 1; }
+
+/* -- MODO PICTURE-IN-PICTURE (PIP) --
+   Por defecto el otro ocupa la pantalla y uno mismo va en la miniatura.
+   Con .swapped se invierten, como al tocar tu miniatura en WhatsApp. */
+.pip-mode:not(.swapped) .remote-box,
+.pip-mode.swapped .local-box {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 2;
+  border: none; border-radius: 0; box-shadow: none;
+  cursor: default;
+}
+.pip-mode:not(.swapped) .local-box,
+.pip-mode.swapped .remote-box {
+  position: absolute;
+  width: 25%;
+  min-width: 140px;
+  max-width: 250px;
+  height: auto;
+  aspect-ratio: 16/9;
+  top: auto; left: auto;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 8px;
+  border: 2px solid #555;
+  background: #111;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+  z-index: 10;
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: none;
+  transition: box-shadow 0.2s;
+}
+.pip-mode:not(.swapped) .local-box:active,
+.pip-mode.swapped .remote-box:active { box-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+.pip-mode:not(.swapped) .local-box:hover,
+.pip-mode.swapped .remote-box:hover { border-color: var(--accent-gold); }
+/* En la miniatura, textos más pequeños para que quepan */
+.pip-mode:not(.swapped) .local-box .video-placeholder,
+.pip-mode.swapped .remote-box .video-placeholder { font-size: 0.72rem; padding: 0.4rem; }
+.pip-mode:not(.swapped) .local-box .video-label,
+.pip-mode.swapped .remote-box .video-label { bottom: 6px; left: 6px; font-size: 0.7rem; padding: 2px 6px; }
+
+/* Ocultar mi imagen: solo se ve al otro, a pantalla completa. La cámara
+   se sigue transmitiendo; esto solo afecta a tu pantalla. Va después de
+   .swapped para ganarle aunque el intercambio esté activo. */
+.pip-mode.hide-self .local-box { display: none; }
+.pip-mode.hide-self .remote-box {
+  position: absolute; top: 0; left: 0; right: auto; bottom: auto;
+  width: 100%; height: 100%;
+  min-width: 0; max-width: none; aspect-ratio: auto;
+  z-index: 2;
+  border: none; border-radius: 0; box-shadow: none;
+  cursor: default;
+}
+.pip-mode.hide-self .remote-box .video-placeholder { font-size: 0.95rem; padding: 1rem; }
+.pip-mode.hide-self .remote-box .video-label { bottom: 12px; left: 12px; font-size: 0.8rem; padding: 4px 10px; }
+
+/* Lado a lado: las dos imágenes del mismo tamaño. Va después de las
+   reglas de miniatura para anularlas. En pantallas verticales estrechas
+   se apilan una encima de otra, que aprovecha mejor el alto. */
+.pip-mode.side .video-grid-layout { display: flex; flex-direction: row; gap: 4px; }
+.pip-mode.side .video-box {
+  position: relative; top: auto; left: auto; right: auto; bottom: auto;
+  flex: 1 1 0; width: auto; height: 100%;
+  min-width: 0; max-width: none; aspect-ratio: auto;
+  z-index: auto;
+  border: none; border-radius: 0; box-shadow: none; background: #000;
+  cursor: default;
+}
+.pip-mode.side .video-box .video-placeholder { font-size: 0.9rem; padding: 1rem; }
+.pip-mode.side .video-box .video-label { bottom: 12px; left: 12px; font-size: 0.8rem; padding: 4px 10px; }
+@media (max-aspect-ratio: 4/5) {
+  .pip-mode.side .video-grid-layout { flex-direction: column; }
+  .pip-mode.side .video-box { width: 100%; height: auto; }
+}
+
+/* Barra inferior de controles */
+.call-controls-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.2rem 1rem;
+  background: #111;
+  border-top: 1px solid #222;
+  z-index: 15;
+}
+
+.call-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.call-btn:hover { background: #3d3d3d; border-color: #666; }
+.call-btn.disabled { background: rgba(218, 54, 51, 0.15); color: var(--danger); border-color: var(--danger); }
+.call-btn.btn-fullscreen { border-color: var(--accent-gold); color: var(--accent-gold); background: rgba(229, 169, 60, 0.1); }
+.call-btn.btn-fullscreen:hover { background: var(--accent-gold); color: #000; }
+
+/* -- FULLSCREEN (Pantalla Completa) -- */
+#video-conference-container:fullscreen { border-radius: 0; border: none; background: #000; }
+#video-conference-container:fullscreen .video-grid-layout { height: calc(100vh - 80px); }
+/* Fix for webkit */
+#video-conference-container:-webkit-full-screen { border-radius: 0; border: none; background: #000; }
+#video-conference-container:-webkit-full-screen .video-grid-layout { height: calc(100vh - 80px); }
+
+/* -------------------------------------------------- */
+.teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+@media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
+.teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; }
+.teacher-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
+.teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
+.teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
+footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+
+/* ======== PANEL DE AFINACIÓN (LA de referencia + teclado) ======== */
+.tuner-top {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 1.6rem;
+}
+@media (max-width: 760px) { .tuner-top { grid-template-columns: 1fr; } }
+
+.block-caption {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+/* -- Calibración del LA -- */
+.calib-row { display: flex; align-items: stretch; gap: 0.5rem; }
+.calib-step {
+  width: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.calib-step:hover { background: var(--border-color); color: var(--accent-gold); }
+.calib-step:active { transform: scale(0.94); }
+.calib-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  min-width: 130px;
+  padding: 0.4rem 0.9rem;
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+.calib-value small { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+
+.calib-presets { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+.preset-btn {
+  flex: 1 1 auto;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.preset-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+.preset-btn.active { background: rgba(229, 169, 60, 0.15); border-color: var(--accent-gold); color: var(--accent-gold); }
+
+/* -- Cuerdas al aire -- */
+.drone-btn { line-height: 1.2; transition: all 0.15s; }
+.drone-btn small { display: block; font-size: 0.65rem; font-weight: 600; color: var(--text-muted); }
+.drone-btn:hover { border-color: var(--accent-gold); }
+.drone-btn.playing small { color: rgba(0,0,0,0.6); }
+
+/* -- Barra del teclado -- */
+.keyboard-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.keyboard-bar .block-caption { margin-bottom: 0; }
+.octave-controls { display: flex; align-items: center; gap: 0.5rem; }
+.octave-btn { flex: 0 0 auto; padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+.range-label {
+  min-width: 96px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -- Teclado de piano -- */
+.keyboard-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: 0.7rem;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* El mueble: madera oscura, con el canto superior iluminado */
+.piano {
+  position: relative;
+  min-width: 660px;
+  padding: 10px 12px 14px 12px;
+  background: linear-gradient(180deg, #2b2119 0%, #1a130d 40%, #0c0906 100%);
+  border: 1px solid #000;
+  border-top: 1px solid #4a3a28;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 170, 0.18),
+              inset 0 -6px 14px rgba(0, 0, 0, 0.7),
+              0 14px 30px rgba(0, 0, 0, 0.55);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* Paño rojo que asoma detrás de las teclas */
+.piano-felt {
+  height: 8px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, #7d1b2a 0%, #4e0f1a 100%);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 140, 150, 0.25);
+}
+
+.keybed { position: relative; display: flex; height: 168px; }
+@media (max-width: 700px) { .keybed { height: 136px; } }
+
+.key {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  transform-origin: top center;
+  transition: transform 0.06s ease-out, filter 0.1s;
+}
+.key-face, .key-front { position: absolute; left: 0; right: 0; pointer-events: none; }
+
+/* ---- Teclas blancas (marfil) ---- */
+.key.white {
+  flex: 1 1 0;
+  min-width: 0;
+  margin-right: -1px;
+  z-index: 1;
+}
+.key.white .key-face {
+  top: 0; bottom: 11px;
+  background: linear-gradient(180deg, #ebe7df 0%, #f7f4ee 12%, #fdfcfa 70%, #fffffe 100%);
+  border: 1px solid #b6b0a4;
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  /* sombra del vecino a la izquierda + brillo del canto derecho */
+  box-shadow: inset 5px 0 7px -6px rgba(0, 0, 0, 0.55),
+              inset -2px 0 2px -2px rgba(255, 255, 255, 0.95),
+              inset 0 -10px 12px -10px rgba(0, 0, 0, 0.3);
+}
+/* El canto frontal: es lo que da la sensación de grosor */
+.key.white .key-front {
+  bottom: 0; height: 12px;
+  background: linear-gradient(180deg, #ded8cc 0%, #cdc6b8 55%, #b3ab9c 100%);
+  border: 1px solid #a49c8d;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.key.white:hover .key-face { background: linear-gradient(180deg, #f3ece0 0%, #fffdf8 60%, #fffffe 100%); }
+.key.white:active, .key.white.playing { transform: translateY(2px) scaleY(0.995); }
+.key.white.playing .key-face {
+  background: linear-gradient(180deg, #d99a2c 0%, #f0bc5c 35%, #f7d089 100%);
+  border-color: #a8761f;
+  box-shadow: inset 0 6px 10px -6px rgba(0, 0, 0, 0.55), inset 0 -8px 12px -8px rgba(0, 0, 0, 0.35);
+}
+.key.white.playing .key-front { background: linear-gradient(180deg, #c78e2a 0%, #9c6d1c 100%); border-color: #8a5f18; }
+
+/* ---- Teclas negras (ébano) ---- */
+.key.black {
+  position: absolute;
+  top: 0;
+  width: calc(100% / var(--white-count) * 0.6);
+  height: 63%;
+  z-index: 3;
+}
+.key.black .key-face {
+  top: 0; bottom: 7px;
+  background: linear-gradient(180deg, #4d4b4e 0%, #2a282b 10%, #171518 45%, #0a090b 100%);
+  border-radius: 0 0 3px 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+              inset 2px 0 3px -2px rgba(255, 255, 255, 0.14),
+              inset -3px 0 4px -3px rgba(0, 0, 0, 0.9);
+}
+/* Canto frontal de la negra, ligeramente más claro */
+.key.black .key-front {
+  bottom: 0; height: 8px;
+  background: linear-gradient(180deg, #3a383c 0%, #1b191c 100%);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 5px 7px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.key.black:hover .key-face { background: linear-gradient(180deg, #5c5039 0%, #33291a 45%, #14100a 100%); }
+.key.black:active, .key.black.playing { transform: translateY(2px); }
+.key.black.playing .key-face {
+  background: linear-gradient(180deg, #f0bc5c 0%, #d99a2c 40%, #a8761f 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.key.black.playing .key-front { background: linear-gradient(180deg, #a8761f 0%, #6d4c12 100%); }
+
+/* ---- Etiquetas: impresas sobre el marfil, discretas ---- */
+.key-label {
+  position: absolute;
+  left: 0; right: 0; bottom: 16px;
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #9b9284;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+.key.white.is-c .key-label { color: #6f675b; }
+.key.white.playing .key-label { color: rgba(0, 0, 0, 0.55); text-shadow: none; }
+@media (max-width: 700px) { .key-label { font-size: 0.55rem; bottom: 15px; } }
+
+/* -- Pie del panel -- */
+.tuner-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+.now-playing {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+}
+.now-playing.idle { color: var(--text-muted); font-weight: 500; }
+.tuner-footer .tool-btn { flex: 0 0 auto; }
+
+
+/* ======== VISTA DEL ALUMNO ======== */
+/* Por defecto manda la vista del profesor: controles visibles, monitor oculto */
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.card-head h4 { margin: 0; }
+
+.lock-badge {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  background: rgba(210, 153, 34, 0.12);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  white-space: nowrap;
+}
+.student-monitor { display: none; }
+
+/* Alumno sin permiso: fuera los controles, entra el monitor */
+.student-locked .teacher-controls { display: none; }
+.student-locked .student-monitor { display: block; }
+.student-locked .lock-badge { display: inline-block; }
+.student-view #peer-id-block { display: none; }
+
+.student-monitor {
+  text-align: center;
+  padding: 1.6rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+.monitor-caption {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+.monitor-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.monitor-value small { font-size: 0.95rem; font-weight: 600; color: var(--text-muted); }
+.monitor-value em { font-style: normal; font-size: 1.3rem; font-weight: 600; color: var(--text-main); }
+.monitor-sub { margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .monitor-value { font-size: 2.2rem; } }
+
+/* Pulso visual del compás */
+.beat-dots { display: flex; justify-content: center; gap: 0.7rem; margin-top: 1.2rem; min-height: 18px; }
+.beat-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #21262d;
+  border: 1px solid var(--border-color);
+  transition: transform 0.08s ease-out, background 0.08s;
+}
+.beat-dot.strong { width: 18px; height: 18px; }
+.beat-dot.on { background: var(--accent-gold); border-color: var(--accent-gold); transform: scale(1.25); }
+.beat-dot.strong.on { box-shadow: 0 0 12px rgba(229, 169, 60, 0.6); }
+
+
+/* ======== ENRUTADO DE AUDIO (panel del profesor) ======== */
+.audio-routing {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color);
+}
+.routing-switches { display: flex; flex-wrap: wrap; gap: 0.6rem 1.8rem; margin-top: 0.5rem; }
+
+.switch { display: inline-flex; align-items: center; gap: 0.6rem; cursor: pointer; user-select: none; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch-track {
+  position: relative;
+  width: 42px; height: 24px;
+  flex: 0 0 auto;
+  border-radius: 24px;
+  background: #21262d;
+  border: 1px solid var(--border-color);
+  transition: background 0.18s, border-color 0.18s;
+}
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.18s, background 0.18s;
+}
+.switch input:checked + .switch-track { background: rgba(229, 169, 60, 0.25); border-color: var(--accent-gold); }
+.switch input:checked + .switch-track::after { transform: translateX(18px); background: var(--accent-gold); }
+.switch input:focus-visible + .switch-track { box-shadow: 0 0 0 3px rgba(229, 169, 60, 0.3); }
+.switch-text { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); transition: color 0.18s; }
+.switch input:checked ~ .switch-text { color: var(--text-main); }
+
+
+/* ======== PANTALLA COMPLETA SIMULADA (iPhone) ======== */
+/* Safari en iPhone no permite requestFullscreen sobre un div, así que ocupamos
+   el viewport a mano. dvh evita que la barra del navegador corte el vídeo. */
+#video-conference-container.faux-fullscreen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 3000;
+  border: none;
+  border-radius: 0;
+  background: #000;
+  margin: 0;
+}
+.faux-fullscreen .video-grid-layout { flex: 1 1 auto; height: auto; min-height: 0; }
+.faux-fullscreen .call-controls-bar {
+  flex: 0 0 auto;
+  padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
+}
+body.fs-lock { overflow: hidden; }
+
+
+/* Línea de diagnóstico de red: sólo aparece cuando hay algo que contar */
+.diagnostic {
+  width: 100%;
+  order: 3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+}
+
+
+/* ======== SALA DE ESPERA DEL ALUMNO ======== */
+#student-lobby {
+  display: none;               /* initSystem lo muestra si hay ?join= */
+  max-width: 460px;
+  margin: 0 auto 1.5rem auto;
+  padding: 1.8rem;
+  text-align: center;
+  background: rgba(229, 169, 60, 0.05);
+  border: 1px solid var(--accent-gold);
+  border-radius: 10px;
+}
+#student-lobby h3 { color: var(--accent-gold); font-size: 1.35rem; margin-bottom: 0.8rem; }
+
+.lobby-req {
+  font-size: 0.88rem;
+  color: var(--warning);
+  background: rgba(210, 153, 34, 0.1);
+  border: 1px solid rgba(210, 153, 34, 0.4);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.4rem;
+  text-align: left;
+}
+
+.lobby-label { display: block; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; }
+.lobby-input {
+  width: 100%; padding: 0.7rem 0.8rem; margin-bottom: 1.2rem;
+  background: #090d12; border: 1px solid var(--border-color); border-radius: 6px;
+  color: var(--text-main); font-size: 1rem; font-family: inherit; outline: none;
+}
+.lobby-input:focus { border-color: var(--accent-gold); }
+
+/* Vista previa: verse antes de que le vean */
+.lobby-preview {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+}
+.lobby-preview video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.lobby-preview-empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.8rem;
+  color: var(--text-muted); font-size: 0.9rem; padding: 1rem;
+}
+.lobby-preview-empty .tool-btn { flex: 0 0 auto; }
+
+.mic-meter {
+  display: none;
+  position: absolute; left: 10px; right: 10px; bottom: 10px; height: 6px;
+  background: rgba(255, 255, 255, 0.15); border-radius: 3px; overflow: hidden;
+}
+.mic-meter span {
+  display: block; width: 0%; height: 100%;
+  background: var(--success); border-radius: 3px;
+  transition: width 0.06s linear;
+}
+
+.lobby-tip { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.3rem; text-align: left; }
+.lobby-enter { width: 100%; font-size: 1.05rem; padding: 0.9rem; }
+.lobby-waiting { margin-top: 1rem; font-size: 0.88rem; color: var(--warning); }
+.lobby-waiting[hidden] { display: none; }
+
+.perm-help {
+  margin-top: 1.2rem; padding: 0.9rem 1rem; text-align: left;
+  background: rgba(218, 54, 51, 0.1); border: 1px solid var(--danger); border-radius: 6px;
+  font-size: 0.86rem; color: var(--text-main);
+}
+.perm-help[hidden] { display: none; }
+.perm-help p + p { margin-top: 0.5rem; color: var(--text-muted); }
+
+/* Durante la clase, la web comercial estorba: un niño pulsa y se sale */
+.student-view header nav a { display: none; }
+
+/* ==========================================================================
+   CORRECCIONES DE INTERFAZ PARA MÓVILES
+   ========================================================================== */
+
+/* 1. Evitar que el teclado rompa el ancho de la página */
+.card-inner {
+  min-width: 0;
+  overflow: hidden; 
+}
+
+@media (max-width: 600px) {
+  /* Reducir los márgenes internos de las tarjetas en pantallas pequeñas */
+  .card-inner { padding: 1rem; }
+
+  /* 2. Ajustes del Metrónomo */
+  .tempo-display { font-size: 2.2rem; }
+  .btn-group { gap: 0.3rem; }
+  .tool-btn.ts-btn { padding: 0.5rem 0.2rem; font-size: 0.85rem; }
+
+  /* 3. Ajustes de los Drones (Cuerdas al aire) */
+  .tuner-top { gap: 1rem; }
+  .drone-grid { gap: 0.2rem; }
+  .drone-btn { padding: 0.5rem 0.1rem; }
+  .drone-btn small { font-size: 0.55rem; }
+
+  /* 4. Ajustes del Calibrador (LA = 440) */
+  .calib-value { min-width: 100px; font-size: 1.5rem; padding: 0.4rem 0.5rem; }
+  .calib-step { width: 36px; font-size: 1.2rem; }
+  .preset-btn { font-size: 0.75rem; padding: 0.3rem; }
+}
+
+/* Selector de altavoz: solo aparece si el navegador permite elegir salida
+   (Chrome/Edge/Firefox de escritorio) y hay más de un dispositivo.
+   !important porque los contenedores llevan display en línea. */
+.audio-output-picker[hidden] { display: none !important; }
