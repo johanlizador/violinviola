@@ -1,0 +1,38 @@
+/* ======== GRABACIÓN ======== */
+.teacher-toggles { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+/* El botón de grabar del alumno solo existe cuando el profesor lo ofrece */
+.student-view:not(.rec-offered) #btn-record { display: none; }
+.call-btn.btn-record { border-color: var(--danger); color: #ff7b72; }
+.call-btn.btn-record:hover { background: rgba(218, 54, 51, 0.18); }
+.call-btn.btn-record.recording { background: var(--danger); color: #fff; }
+.call-btn.btn-record.pending { border-style: dashed; color: var(--text-muted); border-color: #666; }
+
+/* Indicador visible para ambos mientras alguien graba */
+#video-conference-container { position: relative; }
+.rec-indicator {
+  position: absolute; top: 12px; left: 12px; z-index: 20;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0, 0, 0, 0.75); color: #fff;
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 0.82rem; font-weight: 600; pointer-events: none;
+}
+.rec-indicator[hidden] { display: none; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); animation: rec-blink 1.2s infinite; }
+@keyframes rec-blink { 50% { opacity: 0.25; } }
+
+/* Aviso al profesor. En pantalla completa se monta dentro del video para
+   que no quede tapado. */
+.rec-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 4000; width: min(92vw, 380px);
+  background: var(--bg-card); color: var(--text-main);
+  border: 2px solid var(--danger); border-radius: 12px;
+  padding: 1rem 1.2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+.rec-toast[hidden] { display: none; }
+#video-conference-container .rec-toast { position: absolute; }
+.rec-toast p { font-weight: 600; margin-bottom: 0.3rem; }
+.rec-toast .rec-toast-note { font-weight: 400; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+.rec-toast-actions { display: flex; gap: 0.6rem; }
+.rec-toast-actions .tool-btn { flex: 1; }

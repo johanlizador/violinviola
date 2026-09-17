@@ -1,0 +1,71 @@
+/* Base del aula: variables, cabecera, caja del estudio, botones y pie */
+
+:root { --bg-main: #0d1117; --bg-card: #161b22; --bg-card-hover: #1f242c; --border-color: #30363d; --accent-gold: #e5a93c; --accent-gold-hover: #f3be5d; --text-main: #f0f6fc; --text-muted: #8b949e; --success: #2ea043; --danger: #da3633; --warning: #d29922; --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-family); line-height: 1.6; scroll-behavior: smooth; }
+header { position: sticky; top: 0; background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); z-index: 1000; padding: 0.8rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.brand { font-weight: 700; font-size: 1.2rem; color: var(--accent-gold); text-decoration: none; }
+nav { display: flex; align-items: center; gap: 1.2rem; }
+nav a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; }
+nav a:hover { color: var(--text-main); }
+.lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-gold); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.2rem; }
+.hero { text-align: center; padding: 4rem 1rem 3rem 1rem; border-bottom: 1px solid var(--border-color); }
+.hero h1 { font-size: 2.6rem; margin-bottom: 1rem; color: #fff; }
+.hero p { color: var(--text-muted); max-width: 700px; margin: 0 auto 2rem auto; font-size: 1.15rem; }
+.btn-cta { display: inline-block; background: var(--accent-gold); color: #000; padding: 0.75rem 1.8rem; border-radius: 8px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-cta:hover { background: var(--accent-gold-hover); transform: translateY(-2px); }
+.section-title { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; color: var(--accent-gold); }
+
+.studio-box { background: var(--bg-card); border: 2px solid var(--accent-gold); border-radius: 14px; padding: 2rem; margin: 3rem 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+.studio-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; background: #21262d; border: 1px solid var(--border-color); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 5px rgba(255,255,255,0.2); }
+.dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+#teacher-login-panel { text-align: center; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg-main); }
+.login-input { padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: #090d12; color: var(--accent-gold); margin-right: 0.5rem; outline: none; font-size: 1rem; text-align: center; letter-spacing: 2px; }
+
+#teacher-share-box { display: none; margin-bottom: 1.5rem; }
+
+.controls-grid { display: none; grid-template-columns: 1fr; gap: 1.5rem; }
+.card-inner { background: var(--bg-main); border: 1px solid var(--border-color); padding: 1.4rem; border-radius: 10px; position: relative; }
+
+.lock-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.6); z-index: 10; border-radius: 10px; display: none; cursor: not-allowed; }
+
+.tempo-display { font-size: 3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #fff; }
+input[type="range"] { width: 100%; accent-color: var(--accent-gold); cursor: pointer; margin-bottom: 1.2rem; }
+.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.tool-btn { flex: 1; padding: 0.6rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
+.tool-btn.primary { background: var(--accent-gold); color: #000; border: none; }
+.tool-btn.active { background: var(--border-color); color: #fff; border-color: var(--text-muted); }
+
+.drone-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-bottom: 1rem; }
+.drone-btn { padding: 0.6rem 0.2rem; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-weight: bold; cursor: pointer; }
+.drone-btn.playing { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); }
+
+.share-container { margin-top: 1rem; background: #090d12; border: 1px dashed var(--border-color); padding: 0.8rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.share-container input { background: transparent; border: none; color: var(--accent-gold); width: 100%; font-size: 0.85rem; outline: none; }
+
+.teachers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+@media (max-width: 800px) { .teachers-grid { grid-template-columns: 1fr; } }
+.teacher-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.8rem; }
+.teacher-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
+.teacher-card .tagline { color: var(--accent-gold); font-size: 0.9rem; margin-bottom: 1.2rem; font-weight: 600; }
+.teacher-card p { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 1rem; text-align: justify; }
+footer { border-top: 1px solid var(--border-color); padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+/* Línea de diagnóstico de red: sólo aparece cuando hay algo que contar */
+.diagnostic {
+  width: 100%;
+  order: 3;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: #090d12;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+}
