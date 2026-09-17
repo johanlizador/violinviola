@@ -612,7 +612,6 @@ body.fs-lock { overflow: hidden; }
 /* Durante la clase, la web comercial estorba: un niño pulsa y se sale */
 .student-view header nav a { display: none; }
 
-
 /* ==========================================================================
    CORRECCIONES DE INTERFAZ PARA MÓVILES
    ========================================================================== */
@@ -642,8 +641,4 @@ body.fs-lock { overflow: hidden; }
   .calib-value { min-width: 100px; font-size: 1.5rem; padding: 0.4rem 0.5rem; }
   .calib-step { width: 36px; font-size: 1.2rem; }
   .preset-btn { font-size: 0.75rem; padding: 0.3rem; }
-}
-/* Efecto espejo para la cámara local en el aula */
-#local-video {
-  transform: scaleX(-1);
 }
