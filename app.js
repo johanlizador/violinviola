@@ -19,7 +19,8 @@ const translations = {
     student_hint: "¿Eres alumno? Necesitas el enlace que te envía tu profesor.",
     st_waiting: "Esperando conexión...", st_generating: "Generando sala...", st_wait_student: "Esperando al alumno...", st_ready: "Listo para conectar...", st_connecting: "Conectando con tu profesor...", st_live: "Conectado en vivo", st_student_left: "El alumno se desconectó", st_teacher_left: "Tu profesor se desconectó",
     err_peer_gone: "No se encontró esa sala. ¿El enlace es el actual?", err_network: "Sin conexión con el servidor de enlace", err_id: "Ya tienes el aula abierta en otra pestaña. Ciérrala y recarga.", err_browser: "Este navegador no soporta videollamadas", err_generic: "Error de conexión", err_ice: "No se pudo abrir la conexión (falta TURN)", err_room_closed: "El aula no está abierta. Pídele a tu profesor que la abra y vuelve a intentarlo.", st_retrying: "El aula aún no está abierta, reintentando...",
-    lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota"
+    lock_badge: "🔒 Lo controla tu profesor", routing_label: "¿Dónde suenan el metrónomo y los drones?", routing_local: "En mi equipo", routing_remote: "En el equipo del alumno", mon_tempo: "Tempo de la clase", mon_pitch: "Nota de referencia", mon_idle: "Sin metrónomo", calib_label: "LA de referencia", open_strings: "Cuerdas al aire", keyboard_label: "Teclado cromático", btn_stop_drone: "Detener Afinador", drone_idle: "Sin nota",
+    btn_mirror_on: "Espejo: ON", btn_mirror_off: "Espejo: OFF"
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", nav_request: "Request a lesson", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", share_hint: "Link for your student:", join_title: "Welcome to class", join_btn: "Enter the class",
@@ -37,7 +38,8 @@ const translations = {
     student_hint: "Are you a student? You need the link your teacher sends you.",
     st_waiting: "Waiting for connection...", st_generating: "Creating room...", st_wait_student: "Waiting for the student...", st_ready: "Ready to connect...", st_connecting: "Connecting to your teacher...", st_live: "Live", st_student_left: "The student disconnected", st_teacher_left: "Your teacher disconnected",
     err_peer_gone: "That room wasn't found. Is the link current?", err_network: "No connection to the signalling server", err_id: "You already have the classroom open in another tab. Close it and reload.", err_browser: "This browser doesn't support video calls", err_generic: "Connection error", err_ice: "Could not open the connection (TURN needed)", err_room_closed: "The classroom isn't open. Ask your teacher to open it, then try again.", st_retrying: "Classroom not open yet, retrying...",
-    lock_badge: "🔒 Your teacher controls this", routing_label: "Where do the metronome and drones play?", routing_local: "On my machine", routing_remote: "On the student's machine", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch"
+    lock_badge: "🔒 Your teacher controls this", routing_label: "Where do the metronome and drones play?", routing_local: "On my machine", routing_remote: "On the student's machine", mon_tempo: "Class tempo", mon_pitch: "Reference pitch", mon_idle: "No metronome", calib_label: "Reference A", open_strings: "Open strings", keyboard_label: "Chromatic keyboard", btn_stop_drone: "Stop Tuner", drone_idle: "No pitch",
+    btn_mirror_on: "Mirror: ON", btn_mirror_off: "Mirror: OFF"
   }
 };
 
@@ -100,6 +102,7 @@ function initSystem() {
     document.getElementById('teacher-login-panel').style.display = 'block';
   }
 
+  // Detectar conexiones de nuevos auriculares
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
      navigator.mediaDevices.addEventListener('devicechange', populateAudioOutputs);
   }
@@ -280,7 +283,7 @@ async function prepareMedia() {
     if (empty) empty.style.display = 'none';
     startMicMeter();
     document.getElementById('permission-help').hidden = true;
-    populateAudioOutputs();
+    populateAudioOutputs(); // Cargar salidas tras permisos
     return true;
   } catch (err) {
     showPermissionHelp(err);
@@ -378,6 +381,7 @@ async function studentEnterClass() {
 
   const localVid = document.getElementById('local-video');
   localVid.srcObject = localStream;
+  if (isMirrored) localVid.style.transform = 'scaleX(-1)';
   localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
   setLocalPlaceholder(false);
   document.getElementById('btn-start-video').style.display = 'none';
@@ -463,6 +467,17 @@ let pendingCall = null;
 let isMicOn = true;
 let isCamOn = true;
 let isFullScreen = false;
+let isMirrored = true; // Por defecto lo activamos
+
+/* Función para alternar el Espejo */
+function toggleMirror() {
+  isMirrored = !isMirrored;
+  const localVid = document.getElementById('local-video');
+  if (localVid) {
+    localVid.style.transform = isMirrored ? 'scaleX(-1)' : 'none';
+  }
+  updateMediaButtonsText();
+}
 
 async function startVideo() {
   const btn = document.getElementById('btn-start-video');
@@ -474,6 +489,7 @@ async function startVideo() {
 
     const localVid = document.getElementById('local-video');
     localVid.srcObject = localStream;
+    if (isMirrored) localVid.style.transform = 'scaleX(-1)';
     localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
     
     setLocalPlaceholder(false);
@@ -637,6 +653,7 @@ async function toggleCam() {
       localStream.addTrack(pista);
       const localVid = document.getElementById('local-video');
       localVid.srcObject = localStream;
+      if (isMirrored) localVid.style.transform = 'scaleX(-1)';
       localVid.play().catch(e => console.warn('[aula] auto-play bloqueado:', e));
 
       await ensureVideoNegotiated(pista);
@@ -677,11 +694,12 @@ function updateMediaButtonsText() {
   const micSpan = document.querySelector('#btn-toggle-mic span');
   const camSpan = document.querySelector('#btn-toggle-cam span');
   const fsSpan = document.querySelector('.btn-fullscreen span');
-  if (!micSpan || !camSpan) return;
-
-  micSpan.innerText = translations[currentLang][isMicOn ? "btn_mute" : "btn_unmute"];
-  camSpan.innerText = translations[currentLang][isCamOn ? "btn_cam_off" : "btn_cam_on"];
-  if(fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
+  const mirrorSpan = document.querySelector('#btn-toggle-mirror span');
+  
+  if (micSpan) micSpan.innerText = translations[currentLang][isMicOn ? "btn_mute" : "btn_unmute"];
+  if (camSpan) camSpan.innerText = translations[currentLang][isCamOn ? "btn_cam_off" : "btn_cam_on"];
+  if (fsSpan) fsSpan.innerText = translations[currentLang][isFullScreen ? "btn_exit_fullscreen" : "btn_fullscreen"];
+  if (mirrorSpan) mirrorSpan.innerText = translations[currentLang][isMirrored ? "btn_mirror_on" : "btn_mirror_off"];
 }
 
 function nativeFullscreenAvailable(el) {
