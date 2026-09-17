@@ -149,6 +149,17 @@
               <button class="call-btn" id="btn-toggle-cam" onclick="toggleCam()">📷 <span data-i18n="btn_cam_off">Apagar Cámara</span></button>
               <button class="call-btn" id="btn-toggle-layout" onclick="toggleViewLayout()">🔲 <span data-i18n="btn_layout">Cambiar Vista</span></button>
               <button class="call-btn btn-fullscreen" onclick="toggleFullScreen()">⛶ <span data-i18n="btn_fullscreen">Pantalla Completa</span></button>
+              
+              <!-- NUEVO BOTÓN DE ESPEJO -->
+              <button class="call-btn" id="btn-toggle-mirror" onclick="toggleMirror()">🪞 <span data-i18n="btn_mirror_on">Espejo: ON</span></button>
+              
+              <!-- SELECTOR DE SALIDA DE AUDIO -->
+              <div class="audio-output-container" style="display: flex; align-items: center; gap: 8px; background: #2a2a2a; padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid #444;">
+                <span style="font-size: 1.1rem;">🔊</span>
+                <select id="audio-output-select" onchange="changeAudioOutput(this.value)" style="background: transparent; color: #fff; border: none; outline: none; font-family: inherit; font-size: 0.85rem; max-width: 140px; cursor: pointer;">
+                  <option value="default">Altavoz predeterminado</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
