@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aula remota | Díaz-Núñez Music Studio</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <link rel="stylesheet" href="base.css?v=19" />
   <link rel="stylesheet" href="video.css?v=19" />
   <link rel="stylesheet" href="herramientas.css?v=19" />
   <link rel="stylesheet" href="sala-espera.css?v=19" />
   <link rel="stylesheet" href="grabacion.css?v=19" />
+  <link rel="stylesheet" href="partitura.css?v=20" />
 </head>
 <body>
 
@@ -179,6 +181,50 @@
           </div>
         </div>
 
+        <!-- Partitura compartida -->
+        <div class="card-inner score-card">
+          <div class="card-head">
+            <h4 data-i18n="score_heading">Partitura compartida</h4>
+            <span class="lock-badge" data-i18n="lock_badge">🔒 Lo controla tu profesor</span>
+          </div>
+
+          <div class="score-toolbar teacher-controls">
+            <input type="file" id="score-file" accept="application/pdf" hidden onchange="onScoreFileChosen(this)" />
+            <button class="tool-btn primary" onclick="openScorePicker()" data-i18n="score_open">Abrir PDF</button>
+            <button class="tool-btn score-needs-pdf" onclick="closeScore()" data-i18n="score_close">Cerrar</button>
+            <span class="sep"></span>
+            <button class="tool-btn score-needs-pdf" onclick="changeScorePage(-1)" aria-label="Página anterior">◀</button>
+            <span class="score-pagelabel" id="score-page-label">—</span>
+            <button class="tool-btn score-needs-pdf" onclick="changeScorePage(1)" aria-label="Página siguiente">▶</button>
+            <span class="sep"></span>
+            <button class="tool-btn active" id="btn-ink" onclick="toggleInk()">✏️ <span data-i18n="score_pen_on">Lápiz</span></button>
+            <button class="ink-color active" data-color="#e5484d" style="background:#e5484d" onclick="setInkColor('#e5484d')" aria-label="Rojo"></button>
+            <button class="ink-color" data-color="#3b82f6" style="background:#3b82f6" onclick="setInkColor('#3b82f6')" aria-label="Azul"></button>
+            <button class="ink-color" data-color="#22c55e" style="background:#22c55e" onclick="setInkColor('#22c55e')" aria-label="Verde"></button>
+            <button class="ink-color" data-color="#f5a524" style="background:#f5a524" onclick="setInkColor('#f5a524')" aria-label="Naranja"></button>
+            <button class="tool-btn score-needs-pdf" onclick="undoInk()" data-i18n="score_undo">Deshacer</button>
+            <button class="tool-btn score-needs-pdf" onclick="clearInk()" data-i18n="score_clear">Limpiar página</button>
+          </div>
+
+          <!-- El zoom es de cada uno, así que el alumno también lo tiene -->
+          <div class="score-toolbar score-own">
+            <button class="tool-btn score-needs-pdf" onclick="changeScoreZoom(-0.2)" aria-label="Alejar">−</button>
+            <span class="score-zoomlabel" id="score-zoom-label">100%</span>
+            <button class="tool-btn score-needs-pdf" onclick="changeScoreZoom(0.2)" aria-label="Acercar">+</button>
+            <span class="score-name" id="score-name"></span>
+          </div>
+
+          <div class="score-progress" id="score-progress" hidden></div>
+          <p class="score-empty" id="score-empty" data-i18n="score_empty">Aún no hay partitura. El profesor abre un PDF y se ve aquí en los dos equipos.</p>
+
+          <div class="score-stage" id="score-stage" hidden>
+            <div class="score-wrap" id="score-wrap">
+              <canvas id="score-page-canvas"></canvas>
+              <canvas id="score-ink"></canvas>
+            </div>
+          </div>
+        </div>
+
         <!-- Metrónomo -->
         <div class="card-inner">
           <div class="card-head">
@@ -291,6 +337,7 @@
   <script src="metronomo.js?v=19"></script>
   <script src="afinador.js?v=19"></script>
   <script src="pantalla.js?v=19"></script>
+  <script src="partitura.js?v=20"></script>
   <script src="grabacion.js?v=19"></script>
   <script src="audio-salida.js?v=19"></script>
   <script src="main.js?v=19"></script>
