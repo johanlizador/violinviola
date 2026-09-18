@@ -163,3 +163,7 @@ body.fs-lock { overflow: hidden; }
    (Chrome/Edge/Firefox de escritorio) y hay más de un dispositivo.
    !important porque los contenedores llevan display en línea. */
 .audio-output-picker[hidden] { display: none !important; }
+
+/* Compartir pantalla */
+.call-btn#btn-share-screen[hidden] { display: none; }
+.call-btn.sharing { border-color: var(--accent-gold); color: var(--accent-gold); }
