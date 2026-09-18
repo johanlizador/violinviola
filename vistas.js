@@ -59,6 +59,7 @@ function enterFauxFullscreen(el) {
   el.classList.add('faux-fullscreen');
   document.body.classList.add('fs-lock');
   isFullScreen = true;
+  showControlsBar();
   updateMediaButtonsText();
 }
 
@@ -67,6 +68,7 @@ function exitFauxFullscreen(el) {
   document.body.classList.remove('fs-lock');
   resetLocalBoxPosition();
   isFullScreen = false;
+  stopHidingControlsBar();
   updateMediaButtonsText();
 }
 
@@ -106,10 +108,59 @@ document.addEventListener('keydown', (e) => {
   if (container && container.classList.contains('faux-fullscreen')) exitFauxFullscreen(container);
 });
 
+/* En pantalla completa la barra se va sola a los pocos segundos y vuelve con
+   cualquier movimiento del ratón, toque o tecla. Fuera de pantalla completa
+   siempre está visible. */
+const BAR_HIDE_DELAY = 3000;
+let barHideTimer = null;
+let lastPointer = null;   // dónde quedó el ratón, para no ocultar la barra bajo él
+
+function showControlsBar() {
+  const container = document.getElementById('video-conference-container');
+  if (!container) return;
+  container.classList.remove('bar-hidden');
+  clearTimeout(barHideTimer);
+  if (!isFullScreen) return;
+  barHideTimer = setTimeout(() => {
+    // Si el ratón quedó sobre la barra, se queda. Se mira por posición y no
+    // por :hover, porque el navegador no recalcula :hover cuando la barra
+    // aparece debajo de un ratón quieto.
+    if (lastPointer) {
+      const bajo = document.elementFromPoint(lastPointer.x, lastPointer.y);
+      if (bajo && bajo.closest && bajo.closest('.call-controls-bar')) { showControlsBar(); return; }
+    }
+    container.classList.add('bar-hidden');
+  }, BAR_HIDE_DELAY);
+}
+
+function stopHidingControlsBar() {
+  clearTimeout(barHideTimer);
+  const container = document.getElementById('video-conference-container');
+  if (container) container.classList.remove('bar-hidden');
+}
+
+(function armarBarraAutomatica() {
+  const container = document.getElementById('video-conference-container');
+  if (!container) return;
+  ['mousemove', 'mousedown', 'touchstart', 'wheel'].forEach(ev =>
+    container.addEventListener(ev, e => {
+      if (e.clientX !== undefined) lastPointer = { x: e.clientX, y: e.clientY };
+      showControlsBar();
+    }, { passive: true }));
+  document.addEventListener('keydown', showControlsBar);
+  const bar = document.getElementById('call-controls');
+  if (bar) {
+    bar.addEventListener('mouseenter', () => clearTimeout(barHideTimer));
+    bar.addEventListener('mouseleave', showControlsBar);
+    bar.addEventListener('focusin', () => clearTimeout(barHideTimer));
+  }
+})();
+
 function onFullScreenChange() {
   const container = document.getElementById('video-conference-container');
   isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement)
               || (container && container.classList.contains('faux-fullscreen'));
+  if (isFullScreen) showControlsBar(); else stopHidingControlsBar();
   updateMediaButtonsText();
 }
 document.addEventListener('fullscreenchange', onFullScreenChange);
