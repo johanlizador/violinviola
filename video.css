@@ -153,9 +153,36 @@
   margin: 0;
 }
 .faux-fullscreen .video-grid-layout { flex: 1 1 auto; height: auto; min-height: 0; }
-.faux-fullscreen .call-controls-bar {
-  flex: 0 0 auto;
+/* En pantalla completa la barra flota sobre el video, así al ocultarse el
+   video ocupa todo sin saltos. Tres reglas separadas porque un selector
+   :fullscreen no reconocido invalidaría toda la lista. */
+.faux-fullscreen .call-controls-bar,
+#video-conference-container:fullscreen .call-controls-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.55) 70%, transparent);
+  border-top: none;
   padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#video-conference-container:-webkit-full-screen .call-controls-bar {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.55) 70%, transparent);
+  border-top: none;
+  padding-bottom: calc(1.2rem + env(safe-area-inset-bottom));
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.faux-fullscreen .video-grid-layout,
+#video-conference-container:fullscreen .video-grid-layout { height: 100%; }
+
+/* Barra oculta tras unos segundos sin actividad */
+#video-conference-container.bar-hidden .call-controls-bar {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+}
+#video-conference-container.bar-hidden { cursor: none; }
+@media (prefers-reduced-motion: reduce) {
+  .call-controls-bar { transition: none; }
 }
 body.fs-lock { overflow: hidden; }
 
