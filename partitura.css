@@ -1,0 +1,29 @@
+/* Partitura compartida */
+.score-card { grid-column: 1 / -1; }
+.score-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
+.score-toolbar .sep { width: 1px; height: 22px; background: var(--border-color); }
+.score-name { font-size: 0.82rem; color: var(--text-muted); max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-pagelabel { font-size: 0.9rem; color: var(--text-main); min-width: 4.5rem; text-align: center; }
+.score-zoomlabel { font-size: 0.82rem; color: var(--text-muted); min-width: 3rem; text-align: center; }
+
+.ink-color {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer; padding: 0;
+}
+.ink-color.active { border-color: #fff; }
+.tool-btn.active { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+.score-own[hidden] { display: none; }
+.score-progress { font-size: 0.85rem; color: var(--accent-gold); margin-bottom: 0.6rem; }
+.score-progress[hidden] { display: none; }
+.score-empty { font-size: 0.88rem; color: var(--text-muted); }
+.score-empty[hidden] { display: none; }
+
+.score-stage { max-height: 75vh; overflow: auto; background: #0b0d11; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem; }
+.score-stage[hidden] { display: none; }
+.score-wrap { position: relative; margin: 0 auto; width: max-content; }
+#score-page-canvas { display: block; background: #fff; border-radius: 4px; }
+#score-ink { position: absolute; top: 0; left: 0; touch-action: none; }
+
+/* Los botones de la barra no se estiran como los de las otras tarjetas */
+.score-toolbar .tool-btn { flex: 0 0 auto; }
