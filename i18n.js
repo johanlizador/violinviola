@@ -31,7 +31,11 @@ const translations = {
     rec_denied: "Tu profesor no autorizó la grabación.", rec_timeout: "Tu profesor no respondió. Puedes volver a pedirlo.",
     rec_revoked: "Tu profesor desactivó la grabación. Se guardó lo grabado hasta ahora.",
     rec_unsupported: "Este navegador no puede grabar. Prueba con Chrome, Edge, Firefox o Safari actualizado.",
-    rec_no_video: "Enciende la videollamada antes de grabar.", rec_student: "Alumno", rec_teacher: "Profesor"
+    rec_no_video: "Enciende la videollamada antes de grabar.", rec_student: "Alumno", rec_teacher: "Profesor",
+    share_start: "Compartir pantalla", share_stop: "Dejar de compartir", share_remote: "Pantalla compartida",
+    share_no_video: "Enciende la videollamada antes de compartir la pantalla.",
+    share_unsupported: "Este navegador no puede compartir pantalla. En iPhone y iPad no está disponible.",
+    share_failed: "No se pudo compartir la pantalla."
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", nav_request: "Request a lesson", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", share_hint: "Link for your student:", join_title: "Welcome to class", join_btn: "Enter the class",
@@ -63,7 +67,11 @@ const translations = {
     rec_denied: "Your teacher did not allow the recording.", rec_timeout: "Your teacher didn't answer. You can ask again.",
     rec_revoked: "Your teacher turned recording off. What was recorded so far has been saved.",
     rec_unsupported: "This browser can't record. Try an up-to-date Chrome, Edge, Firefox or Safari.",
-    rec_no_video: "Turn on the video call before recording.", rec_student: "Student", rec_teacher: "Teacher"
+    rec_no_video: "Turn on the video call before recording.", rec_student: "Student", rec_teacher: "Teacher",
+    share_start: "Share screen", share_stop: "Stop sharing", share_remote: "Shared screen",
+    share_no_video: "Turn on the video call before sharing your screen.",
+    share_unsupported: "This browser can't share the screen. It isn't available on iPhone or iPad.",
+    share_failed: "Could not share the screen."
   }
 };
 
@@ -89,5 +97,6 @@ function applyLanguage(lang) {
   });
   updateStudentAuthButton();
   if (typeof updateRecordingUI === 'function') updateRecordingUI();
+  if (typeof updateShareButton === 'function') updateShareButton();
   if (lastStatusKey) setStatus(lastStatusKey, document.getElementById('status-dot').className.replace('dot ', ''));
 }
