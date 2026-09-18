@@ -24,6 +24,7 @@ function initSystem() {
 
   updateRecordingUI();
   updateShareButton();
+  updateScoreUI();
 
   // Llenar listas de audio si ya hay permisos concedidos previamente
   populateAudioOutputs();
