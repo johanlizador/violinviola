@@ -198,7 +198,7 @@ function setupConn(conn) {
     if (localStream && !isCamOn) sendPeerMessage({ type: 'CAM_STATE', on: false });
   });
   conn.on('data', (data) => { handleData(data); });
-  conn.on('close', () => { onRecordingPeerGone(); setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
+  conn.on('close', () => { onRecordingPeerGone(); onSharingPeerGone(); setStatus(currentRole === 'teacher' ? 'st_student_left' : 'st_teacher_left', 'error'); });
 }
 
 function sendPeerMessage(msg) { 
@@ -313,6 +313,7 @@ function handleData(data) {
       ph.innerText = translations[currentLang][data.on ? 'vid_remote_wait' : 'vid_remote_off'];
     }
   }
+  else if (data.type === 'SCREEN_STATE') { setRemoteSharing(!!data.on); }
   else if (data.type === 'HELLO') {
     const etiqueta = document.getElementById('remote-label');
     if (etiqueta) { etiqueta.innerText = data.name; etiqueta.removeAttribute('data-i18n'); }
