@@ -35,7 +35,13 @@ const translations = {
     share_start: "Compartir pantalla", share_stop: "Dejar de compartir", share_remote: "Pantalla compartida",
     share_no_video: "Enciende la videollamada antes de compartir la pantalla.",
     share_unsupported: "Este navegador no puede compartir pantalla. En iPhone y iPad no está disponible.",
-    share_failed: "No se pudo compartir la pantalla."
+    share_failed: "No se pudo compartir la pantalla.",
+    score_heading: "Partitura compartida", score_open: "Abrir PDF", score_close: "Cerrar",
+    score_pen_on: "Lápiz", score_pen_off: "Lápiz apagado", score_undo: "Deshacer", score_clear: "Limpiar página",
+    score_empty: "Aún no hay partitura. El profesor abre un PDF y se ve aquí en los dos equipos.",
+    score_sending: "Enviando partitura…", score_receiving: "Recibiendo partitura…",
+    score_only_pdf: "Elige un archivo PDF.", score_too_big: "El PDF pesa más de {mb} MB. Prueba con uno más ligero.",
+    score_failed: "No se pudo abrir el PDF.", score_no_pdfjs: "No se pudo cargar el lector de PDF. Revisa tu conexión."
   },
   en: { 
     nav_teachers: "Faculty", nav_studio: "Live Classroom", nav_request: "Request a lesson", hero_title: "Strings Excellence & Innovation", hero_subtitle: "Private violin and viola instruction.", hero_cta: "Enter Studio", studio_title: "Synchronized Studio", login_title: "Teacher Panel Access", btn_login: "Unlock Studio", share_hint: "Link for your student:", join_title: "Welcome to class", join_btn: "Enter the class",
@@ -71,7 +77,13 @@ const translations = {
     share_start: "Share screen", share_stop: "Stop sharing", share_remote: "Shared screen",
     share_no_video: "Turn on the video call before sharing your screen.",
     share_unsupported: "This browser can't share the screen. It isn't available on iPhone or iPad.",
-    share_failed: "Could not share the screen."
+    share_failed: "Could not share the screen.",
+    score_heading: "Shared score", score_open: "Open PDF", score_close: "Close",
+    score_pen_on: "Pen", score_pen_off: "Pen off", score_undo: "Undo", score_clear: "Clear page",
+    score_empty: "No score yet. The teacher opens a PDF and it shows up here on both computers.",
+    score_sending: "Sending score…", score_receiving: "Receiving score…",
+    score_only_pdf: "Choose a PDF file.", score_too_big: "The PDF is over {mb} MB. Try a lighter one.",
+    score_failed: "Could not open the PDF.", score_no_pdfjs: "Could not load the PDF reader. Check your connection."
   }
 };
 
@@ -98,5 +110,6 @@ function applyLanguage(lang) {
   updateStudentAuthButton();
   if (typeof updateRecordingUI === 'function') updateRecordingUI();
   if (typeof updateShareButton === 'function') updateShareButton();
+  if (typeof updateScoreUI === 'function') updateScoreUI();
   if (lastStatusKey) setStatus(lastStatusKey, document.getElementById('status-dot').className.replace('dot ', ''));
 }
