@@ -185,6 +185,7 @@ function setupConn(conn) {
           sendPeerMessage({ type: 'HELLO', name: localDisplayName() });
           sendPeerMessage({ type: 'TUNING_CHANGE', a4 });
           pushToolStateToPeer();
+          pushScoreToPeer();
       }, 300); 
     }
     
@@ -314,6 +315,7 @@ function handleData(data) {
     }
   }
   else if (data.type === 'SCREEN_STATE') { setRemoteSharing(!!data.on); }
+  else if (data.type && data.type.startsWith('SCORE_')) { handleScoreMessage(data); }
   else if (data.type === 'HELLO') {
     const etiqueta = document.getElementById('remote-label');
     if (etiqueta) { etiqueta.innerText = data.name; etiqueta.removeAttribute('data-i18n'); }
